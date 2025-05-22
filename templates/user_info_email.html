@@ -3,14 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <title>이메일 변경</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; }
+        .container { max-width: 500px; margin: 100px auto; background: white; padding: 40px; border-radius: 10px; text-align: center; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        #menuToggle { position: absolute; top: 20px; left: 20px; font-size: 30px; cursor: pointer; color: #5c8cf5; z-index: 1100; }
+        #sideMenu { height: 100%; width: 250px; position: fixed; top: 0; left: -250px; background: #2c3e50; padding-top: 60px; transition: 0.3s; z-index: 1000; }
+        #sideMenu a { padding: 12px 32px; text-decoration: none; font-size: 18px; color: white; display: block; }
+        #sideMenu a:hover { background-color: #34495e; }        
+        input[type="email"], input[type="submit"] {
+            width: 80%; padding: 12px; margin-top: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px;
+        }
+        input[type="submit"] {
+            background-color: #2980b9; color: white; cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #3498db;
+        }
+        a { display: inline-block; margin-top: 20px; color: #2980b9; text-decoration: none; }
+    </style>
 </head>
 <body>
-    <h2>이메일 주소 변경</h2>
+    <div id="menuToggle">☰</div>
+    <div id="sideMenu">
+        <a href="/dashboard">대시보드 확인</a>
+        <a href="/user_info" style="background-color:rgba(128,167,250,0.82);">사용자 정보 수정</a>
+        <a href="/report">보고서 작성</a>
+        <a href="/manage">대시보드 관리</a>
+        <a href="/logout">로그아웃</a>
+    </div>
+    <script>
+        document.getElementById("menuToggle").onclick = function () {
+            const menu = document.getElementById("sideMenu");
+            menu.style.left = (menu.style.left === "-250px") ? "0" : "-250px";
+        };
+    </script>
+<div class="container">
+    <h2>이메일 변경</h2>
     <form method="POST">
-        <label>새 이메일:</label>
-        <input type="email" name="email" required><br>
+        <label for="email">새 이메일 주소:</label><br>
+        <input type="email" name="email" id="email" required><br>
         <input type="submit" value="변경">
     </form>
-    <a href="/user_info">← 사용자 정보로</a>
+    <a href="/user_info">← 사용자 정보로 돌아가기</a>
+</div>
 </body>
 </html>

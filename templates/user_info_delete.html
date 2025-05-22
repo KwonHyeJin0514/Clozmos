@@ -3,12 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <title>계정 탈퇴</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; }
+        #menuToggle { position: absolute; top: 20px; left: 20px; font-size: 30px; cursor: pointer; color: #5c8cf5; z-index: 1100; }
+        #sideMenu { height: 100%; width: 250px; position: fixed; top: 0; left: -250px; background: #2c3e50; padding-top: 60px; transition: 0.3s; z-index: 1000; }
+        #sideMenu a { padding: 12px 32px; text-decoration: none; font-size: 18px; color: white; display: block; }
+        #sideMenu a:hover { background-color: #34495e; }
+        .container { max-width: 500px; margin: 100px auto; padding: 40px; background: #fff; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.1); text-align: center; }
+        h2 { margin-bottom: 20px; color: #c0392b; }
+        p { font-size: 16px; color: #444; }
+        form { margin-top: 20px; }
+        input[type="submit"] { background: #e74c3c; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer; }
+        input[type="submit"]:hover { background: #c0392b; }
+        a { margin-top: 20px; display: inline-block; color: #2980b9; text-decoration: none; }
+    </style>
 </head>
 <body>
-    <h2>정말로 계정을 탈퇴하시겠습니까?</h2>
+    <div id="menuToggle">☰</div>
+    <div id="sideMenu">
+        <a href="/dashboard">대시보드 확인</a>
+        <a href="/user_info" style="background-color:rgba(128,167,250,0.82);">사용자 정보 수정</a>
+        <a href="/report">보고서 작성</a>
+        <a href="/manage">대시보드 관리</a>
+        <a href="/logout">로그아웃</a>
+    </div>
+    <script>
+        document.getElementById("menuToggle").onclick = function () {
+            const menu = document.getElementById("sideMenu");
+            menu.style.left = (menu.style.left === "-250px") ? "0" : "-250px";
+        };
+    </script>
+<div class="container">
+    <h2>계정 탈퇴</h2>
+    <p>정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</p>
     <form method="POST">
-        <input type="submit" value="탈퇴하기">
+        <input type="submit" value="확인하고 탈퇴">
     </form>
-    <a href="/user_info">← 돌아가기</a>
+    <a href="/user_info">← 사용자 정보로 돌아가기</a>
+</div>
 </body>
 </html>

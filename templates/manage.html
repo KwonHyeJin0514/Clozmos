@@ -2,29 +2,162 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>대시보드 설정</title>
+    <meta http-equiv="refresh" content="10">
+    <title>대시보드 관리</title>
+    <style>
+        #menuToggle {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 30px;
+            cursor: pointer;
+            z-index: 1100;
+        }
+
+        #sideMenu {
+            height: 100%;
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: -250px;
+            background-color: #2c3e50;
+            padding-top: 60px;
+            transition: 0.3s;
+            overflow-x: hidden;
+            z-index: 1000;
+        }
+
+        #sideMenu a {
+            padding: 8px 32px;
+            text-decoration: none;
+            font-size: 18px;
+            color: white;
+            display: block;
+        }
+
+        #sideMenu a:hover {
+            background-color: #34495e;
+        }
+
+        .container {
+            text-align: center;
+            width: 600px;
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            background-color: #f8f9fa;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        form {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .resource {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .resource label {
+            font-weight: bold;
+        }
+
+        .thresholds {
+            margin-top: 10px;
+            margin-left: 20px;
+        }
+
+        input[type="number"] {
+            width: 100px;
+            padding: 5px;
+            margin-left: 10px;
+            margin-right: 20px;
+        }
+
+        input[type="submit"] {
+            padding: 12px 20px;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: block;
+            margin: 30px auto 0;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #3498db;
+        }
+    </style>
 </head>
 <body>
-    <h2>대시보드 설정</h2>
-    <form method="POST">
-        <label>표시할 대시보드 수:</label>
-        <input type="number" name="count" min="1" max="5"><br><br>
+    <div id="menuToggle" style="color:rgba(92, 140, 245, 0.82);">☰</div>
 
-        <h3>모니터링 리소스 및 임계치 설정</h3>
-        <label>CPU (경고 / 위험):</label>
-        <input type="number" name="cpu_warn" value="60"> /
-        <input type="number" name="cpu_crit" value="85"><br>
+    <div id="sideMenu">
+        <a href="/dashboard">대시보드 확인</a>
+        <a href="/user_info">사용자 정보 수정</a>
+        <a href="/report">보고서 작성</a>
+        <a href="/manage" style="background-color:rgba(128, 167, 250, 0.82);">대시보드 관리</a>
+        <a href="/logout">로그아웃</a>
+    </div>
 
-        <label>Memory (경고 / 위험):</label>
-        <input type="number" name="mem_warn" value="70"> /
-        <input type="number" name="mem_crit" value="90"><br>
+    <script>
+        document.getElementById("menuToggle").onclick = function () {
+            const menu = document.getElementById("sideMenu");
+            menu.style.left = (menu.style.left === "-250px") ? "0" : "-250px";
+        };
+    </script>
 
-        <label>Network (경고 / 위험):</label>
-        <input type="number" name="net_warn" value="50"> /
-        <input type="number" name="net_crit" value="80"><br>
+    <h1>대시보드 관리</h1>
 
-        <br><input type="submit" value="저장">
+    <form method="POST" action="/manage">
+        {% set default_thresholds = {
+            "CPU 평균 부하": {"warn": 2.0, "crit": 5.0},
+            "CPU 사용률": {"warn": 80, "crit": 95},
+            "사용 가능한 메모리": {"warn": 500, "crit": 100}, 
+            "전체대비 메모리 사용률": {"warn": 85, "crit": 95},
+            "디스크 사용률": {"warn": 80, "crit": 95},
+            "네트워크 송수신 바이트수": {"warn": 10000, "crit": 20000},
+            "패킷 손실율": {"warn": 10, "crit": 30},
+            "부팅 후 경과시간": {"warn": 86400, "crit": 172800}, 
+            "중요 포트 오픈 여부": {"warn": 0, "crit": 0}
+        } %}
+        {% set resources = default_thresholds.keys() %}
+
+        {% for resource in resources %}
+        {% set warn = default_thresholds[resource]["warn"] %}
+        {% set crit = default_thresholds[resource]["crit"] %}
+        <div class="resource">
+            <label><input type="checkbox" name="resources" value="{{ resource }}"> {{ resource }}</label>
+            <div class="thresholds">
+                <label>경고 임계치:
+                    <input type="number" step="any" name="warning_{{ loop.index0 }}" placeholder="{{ warn }}">
+                </label>
+                <label>위험 임계치:
+                    <input type="number" step="any" name="critical_{{ loop.index0 }}" placeholder="{{ crit }}">
+                </label>
+            </div>
+        </div>
+        {% endfor %}
+
+        <input type="submit" value="저장">
     </form>
-    <a href="/dashboard">← 대시보드로</a>
+
 </body>
 </html>
