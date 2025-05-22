@@ -1,0 +1,5 @@
+pip install flask
+pip install matplotlib
+pip install requests
+pip install reportlab 
+pip install fpdf
