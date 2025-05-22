@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="10">
+    <title>모니터링 보고서</title>
+    <style>
+        #menuToggle {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 30px;
+            cursor: pointer;
+            z-index: 1100;
+        }
+
+        #sideMenu {
+            height: 100%;
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: -250px;
+            background-color: #2c3e50;
+            padding-top: 60px;
+            transition: 0.3s;
+            overflow-x: hidden;
+            z-index: 1000;
+        }
+
+        #sideMenu a {
+            padding: 8px 32px;
+            text-decoration: none;
+            font-size: 18px;
+            color: white;
+            display: block;
+        }
+
+        #sideMenu a:hover {
+            background-color: #34495e;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            text-align: center;
+            width: 600px;
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"],
+        input[type="email"] {
+            width: 80%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .radio-group {
+            margin-bottom: 20px;
+        }
+
+        .radio-group input {
+            margin-right: 5px;
+        }
+
+        .preview-box {
+            border: 1px solid #aaa;
+            padding: 20px;
+            height: 200px;
+            background-color: #fff;
+            overflow-y: auto;
+            margin: 0 auto;
+            width: 90%;
+            text-align: left;
+        }
+
+        .button-row {
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            background-color: #2980b9;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #3498db;
+        }
+
+        .send-btn {
+            background-color: #2ecc71;
+        }
+
+        .send-btn:hover {
+            background-color: #27ae60;
+        }
+
+        #errorMsg {
+            color: red;
+            font-weight: bold;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="menuToggle" style="color:rgba(92, 140, 245, 0.82);">☰</div>
+
+    <div id="sideMenu">
+        <a href="/dashboard">대시보드 확인</a>
+        <a href="/user_info">사용자 정보 수정</a>
+        <a href="/report" style="background-color:rgba(128, 167, 250, 0.82);">보고서 작성</a>
+        <a href="/manage">대시보드 관리</a>
+        <a href="/logout">로그아웃</a>
+    </div>
+
+    <script>
+        document.getElementById("menuToggle").onclick = function () {
+            const menu = document.getElementById("sideMenu");
+            menu.style.left = (menu.style.left === "-250px") ? "0" : "-250px";
+        };
+    </script>
+
+    <div class="container">
+        <h1>모니터링 보고서</h1>
+
+        <form method="POST" onsubmit="return validateForm()">
+            <div class="form-group radio-group">
+                <label>기간 선택:</label>
+                <input type="radio" name="start" value="-1h" onclick="toggleCustomInput()"> 지난 1시간
+                <input type="radio" name="start" value="-24h" onclick="toggleCustomInput()"> 지난 24시간
+                <input type="radio" name="start" value="custom" onclick="toggleCustomInput()"> 사용자 지정
+            </div>
+
+            <div id="customInputs" class="form-group" style="display: none;">
+                <input type="text" id="start_custom" name="start_custom" placeholder="시작 시간 (YYYY-MM-DD HH:MM)">
+                <br><br>
+                <input type="text" id="end_custom" name="end_custom" placeholder="종료 시간 (YYYY-MM-DD HH:MM)">
+            </div>
+
+            <div class="form-group">
+                <label>수신 이메일:</label>
+                <input type="email" name="email" required>
+            </div>
+
+            <div id="errorMsg">올바른 날짜/시간 형식을 입력해주세요. 예: 2025-05-22 15:00</div>
+
+            <div class="form-group button-row">
+                <button type="submit" name="action" value="preview">조회</button>
+            </div>
+
+            <div class="form-group">
+                <label>미리보기:</label>
+                <div class="preview-box">
+                    {% if preview %}
+                        {{ preview|safe }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-group button-row">
+                <button type="submit" class="send-btn" name="action" value="send">전송</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function toggleCustomInput() {
+            const customInputs = document.getElementById("customInputs");
+            const selected = document.querySelector('input[name="start"]:checked').value;
+            customInputs.style.display = (selected === "custom") ? "block" : "none";
+            document.getElementById("errorMsg").style.display = "none";
+        }
+
+        function validateForm() {
+            const selected = document.querySelector('input[name="start"]:checked').value;
+            if (selected === "custom") {
+                const start = document.getElementById("start_custom").value.trim();
+                const end = document.getElementById("end_custom").value.trim();
+                const pattern = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/;
+
+                if (!pattern.test(start) || !pattern.test(end)) {
+                    document.getElementById("errorMsg").style.display = "block";
+                    return false;
+                }
+            }
+            return true;
+        }
+    </script>
+</body>
+</html>

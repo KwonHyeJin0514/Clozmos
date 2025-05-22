@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="10">
+    <title>사용자 정보 수정</title>
+    <style>
+        /* 사이드 메뉴 스타일 */
+        #menuToggle {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 30px;
+            cursor: pointer;
+            z-index: 1100;
+        }
+
+        #sideMenu {
+            height: 100%;
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: -250px;
+            background-color: #2c3e50;
+            padding-top: 60px;
+            transition: 0.3s;
+            overflow-x: hidden;
+            z-index: 1000;
+        }
+
+        #sideMenu a {
+            padding: 8px 32px;
+            text-decoration: none;
+            font-size: 18px;
+            color: white;
+            display: block;
+        }
+
+        #sideMenu a:hover {
+            background-color: #34495e;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 400px;
+            margin: 80px auto;
+            padding: 40px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .field {
+            margin-bottom: 20px;
+        }
+        .field label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .field span {
+            display: block;
+            padding: 10px;
+            background-color: #f8f8f8;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .btn-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        .btn-group a {
+            flex: 1;
+            margin: 0 5px;
+            text-align: center;
+            background-color: #2980b9;
+            color: white;
+            padding: 10px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .btn-group a:hover {
+            background-color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div id="menuToggle" style="color:rgba(92, 140, 245, 0.82);" >☰</div>
+
+    <div id="sideMenu">
+        <a href="/dashboard" >대시보드 확인</a>
+        <a href="/user_info" style="background-color:rgba(128, 167, 250, 0.82);">사용자 정보 수정</a>
+        <a href="/report">보고서 작성</a>
+        <a href="/manage">대시보드 관리</a>
+        <a href="/logout">로그아웃</a>
+    </div>
+
+    <script>
+        document.getElementById("menuToggle").onclick = function () {
+            var menu = document.getElementById("sideMenu");
+            if (menu.style.left === "-250px") {
+                menu.style.left = "0";
+            } else {
+                menu.style.left = "-250px";
+            }
+        };
+    </script>
+
+    <div class="container">
+        <h2>사용자 정보 수정</h2>
+        <div class="field">
+            <label>ID</label>
+            <span>{{ username }}</span>
+        </div>
+        <div class="field">
+            <label>이메일</label>
+            <span>{{ email }}</span>
+        </div>
+        <div class="btn-group">
+            <a href="/user_info_name">닉네임 수정</a>
+            <a href="/user_info_email">이메일 수정</a>
+        </div>
+        <div class="btn-group" style="margin-top: 10px;">
+            <a href="/user_info_password">비밀번호 수정</a>
+            <a href="/user_info_alert">알림 설정</a>
+        </div>
+        <div class="btn-group" style="margin-top: 10px;">
+            <a href="/user_info_language">언어 변경</a>
+            <a href="/user_info_delete" style="background-color: #c0392b;">계정 탈퇴</a>
+        </div>
+    </div>
+</body>
+</html>

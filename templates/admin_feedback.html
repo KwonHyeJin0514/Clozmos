@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>사용자 의견 목록</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background-color: #f4f6f9;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .feedback-box {
+            border-bottom: 1px solid #ddd;
+            padding: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>사용자 의견 목록</h2>
+        {% for fb in feedbacks %}
+            <div class="feedback-box">{{ fb }}</div>
+        {% else %}
+            <p>의견이 없습니다.</p>
+        {% endfor %}
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="/dashboard">← 대시보드로 돌아가기</a>
+        </div>
+    </div>
+</body>
+</html>
