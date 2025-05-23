@@ -1,4 +1,5 @@
 import requests
+import time
 
 ZABBIX_API_URL = "http://172.29.109.42/zabbix/api_jsonrpc.php"
 

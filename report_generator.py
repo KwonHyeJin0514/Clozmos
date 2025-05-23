@@ -2,44 +2,80 @@ from fpdf import FPDF
 from datetime import datetime
 import os
 import time
+from zabbix_api import get_user_info, get_alert_logs, get_item_id, get_latest_data, get_user_host
 
-def generate_pdf_report(token, username, start, end):
-    # 날짜 문자열을 datetime 객체로 변환
+# PDF 보고서 생성 함수
+def generate_pdf_report(token, username, start, end, selected_resources=None):
     try:
         start_dt = datetime.strptime(start, '%Y-%m-%d %H:%M')
         end_dt = datetime.strptime(end, '%Y-%m-%d %H:%M')
     except ValueError:
         raise Exception("날짜 형식을 확인해주세요. (예: 2024-01-01 13:00)")
 
-    # PDF 생성
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
 
-    pdf.cell(200, 10, txt=f"{username}님의 리소스 보고서", ln=True, align='C')
-    pdf.cell(200, 10, txt=f"기간: {start_dt.strftime('%Y-%m-%d %H:%M')} ~ {end_dt.strftime('%Y-%m-%d %H:%M')}", ln=True, align='C')
-    pdf.ln(10)
+    # 사용자 정보
+    user = get_user_info(token)
+    pdf.cell(200, 10, txt=f"사용자: {user['alias']} ({user['name']})", ln=True)
+    pdf.cell(200, 10, txt=f"이메일: {user['email']}", ln=True)
+    pdf.cell(200, 10, txt=f"언어: {user.get('lang', 'ko')}", ln=True)
+    pdf.ln(5)
 
-    # 샘플 데이터 (실제 Zabbix 데이터가 연동되면 바꿀 수 있음)
-    pdf.cell(200, 10, txt="리소스별 평균 및 최대 사용률:", ln=True)
-    pdf.cell(200, 10, txt="- CPU 평균: 25%, 최대: 70%", ln=True)
-    pdf.cell(200, 10, txt="- 메모리 평균: 58%, 최대: 90%", ln=True)
-    pdf.ln(10)
+    pdf.cell(200, 10, txt=f"리소스 보고서 기간: {start_dt.strftime('%Y-%m-%d %H:%M')} ~ {end_dt.strftime('%Y-%m-%d %H:%M')}", ln=True)
+    pdf.ln(5)
 
-    # 그래프 이미지 삽입
-    if os.path.exists("static/CPU.png"):
-        pdf.image("static/CPU.png", x=10, w=180)
-    if os.path.exists("static/Memory.png"):
-        pdf.image("static/Memory.png", x=10, w=180)
+    # 리소스 키 설정 (manage.html 기준)
+    resource_items = {
+        "CPU 평균 부하": ["system.cpu.load[percpu,avg1]"],
+        "CPU 사용률": ["system.cpu.util[,user]", "system.cpu.util"],
+        "사용 가능한 메모리": ["vm.memory.size[available]"],
+        "전체대비 메모리 사용률": ["vm.memory.util"],
+        "디스크 사용률": ["vfs.fs.size[/,pused]", "vfs.fs.size[C:,pused]"],
+        "네트워크 송수신 바이트수": ["net.if.in[eth0]", "net.if.out[eth0]"],
+        "패킷 손실율": ["net.if.loss[eth0]"],
+        "부팅 후 경과시간": ["system.uptime"],
+        "중요 포트 오픈 여부": ["net.tcp.listen[22]"]
+    }
 
-    # 알림 로그 예시
-    pdf.ln(10)
+    host_id = get_user_host(token, username, return_id=True)
+
+    for res_name, key_list in resource_items.items():
+        if selected_resources and res_name not in selected_resources:
+            continue
+        data_points = []
+        for key in key_list:
+            try:
+                item_id = get_item_id(token, host_id, key)
+                data = get_latest_data(token, item_id, limit=20)
+                values = [float(d['value']) for d in data]
+                if not values:
+                    continue
+                max_val = max(values)
+                warn_cnt = len([v for v in values if v > 80])
+                crit_cnt = len([v for v in values if v > 95])
+
+                pdf.set_font("Arial", style='B', size=11)
+                pdf.cell(200, 10, txt=f"▶ {res_name}", ln=True)
+                pdf.set_font("Arial", size=10)
+                pdf.cell(200, 8, txt=f"  최대값: {max_val}", ln=True)
+                pdf.cell(200, 8, txt=f"  경고 수: {warn_cnt}회, 위험 수: {crit_cnt}회", ln=True)
+                img_path = f"static/{res_name.split()[0]}.png"
+                if os.path.exists(img_path):
+                    pdf.image(img_path, x=10, w=180)
+                pdf.ln(3)
+                break
+            except:
+                continue
+
+    pdf.ln(5)
+    pdf.set_font("Arial", size=12)
     pdf.cell(200, 10, txt="최근 알림 로그:", ln=True)
     pdf.set_font("Arial", size=10)
-    pdf.multi_cell(200, 8,
-        "- [2025-05-01 15:00:00] CPU 임계치 초과\n"
-        "- [2025-05-01 15:05:00] 메모리 사용량 90% 초과"
-    )
+    logs = get_alert_logs(token, username)
+    for log in logs:
+        pdf.multi_cell(200, 8, f"- [{log['time']}] {log['message']}")
 
     output_path = f"report_{username}_{int(time.time())}.pdf"
     pdf.output(output_path)
