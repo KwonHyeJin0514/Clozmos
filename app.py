@@ -14,7 +14,8 @@ app.secret_key = 'your_secret_key'
 #로그인 화면
 @app.route('/')
 def index():
-    return render_template('login.html')
+    lang = session.get('lang','ko')
+    return render_template('login.html', lang=lang)
 
 #로그인 시도가 발생하면 데이터베이스와 비교
 @app.route('/login', methods=['POST'])
@@ -118,7 +119,8 @@ def api_data():
 def user_info():
     token = session['auth_token']
     info = get_user_info(token)
-    return render_template('user_info.html', user=info)
+    lang = session.get('lang','ko')
+    return render_template('user_info.html', user=info, lang=lang)
 
 #사용자 닉네임 수정
 @app.route('/user_info_name', methods=['GET', 'POST'])
@@ -127,7 +129,8 @@ def user_info_name():
     if request.method == 'POST':
         update_user_field(token, 'alias', request.form['alias'])
         return redirect(url_for('user_info'))
-    return render_template('user_info_name.html')
+    lang = session.get('lang','ko')
+    return render_template('user_info_name.html', lang=lang)
 
 #사용자 이메일 수정
 @app.route('/user_info_email', methods=['GET', 'POST'])
@@ -136,30 +139,34 @@ def user_info_email():
     if request.method == 'POST':
         update_user_field(token, 'email', request.form['email'])
         return redirect(url_for('user_info'))
-    return render_template('user_info_email.html')
+    lang = session.get('lang','ko')
+    return render_template('user_info_email.html',lnag=lang)
 
 #사용자 언어 수정
 @app.route('/user_info_language', methods=['GET', 'POST'])
 def user_info_language():
     token = session['auth_token']
+    lang = session.get('lang','ko')
     if request.method == 'POST':
         update_user_field(token, 'lang', request.form['language'])
         return redirect(url_for('user_info'))
-    return render_template('user_info_language.html')
+    return render_template('user_info_language.html',lang=lang)
 
 #알림 수신 이메일 변경
 @app.route('/user_info_alert', methods=['GET', 'POST'])
 def user_info_alert():
     token = session['auth_token']
+    lang = session.get('lang','ko')
     if request.method == 'POST':
         update_user_field(token, 'alert_email', request.form['alert_email'])
         return redirect(url_for('user_info'))
-    return render_template('user_info_alert.html')
+    return render_template('user_info_alert.html',lang=lang)
 
 #비밀번호 변경
 @app.route('/user_info_password', methods=['GET', 'POST'])
 def user_info_password():
     token = session['auth_token']
+    lang = session.get('lang','ko')
     if request.method == 'POST':
         current = request.form['current_pw']
         new1 = request.form['new_pw']
@@ -172,21 +179,23 @@ def user_info_password():
             update_user_field(token, 'passwd', new1)
             flash("비밀번호가 변경되었습니다.")
         return redirect(url_for('user_info_password'))
-    return render_template('user_info_password.html')
+    return render_template('user_info_password.html',lang=lang)
 
 #계정 탈퇴
 @app.route('/user_info_delete', methods=['GET', 'POST'])
 def user_info_delete():
     token = session['auth_token']
+    lang = session.get('lang','ko')
     if request.method == 'POST':
         delete_user_account(token)
         flash("계정이 삭제되었습니다.")
         return redirect(url_for('logout'))
-    return render_template('user_info_delete.html')
+    return render_template('user_info_delete.html',lang=lang)
 
 #보고서 생성 및 이메일 전송
 @app.route('/report', methods=['GET', 'POST'])
 def report():
+    lang = session.get('lang','ko')
     if request.method == 'POST':
         token = session.get('auth_token')
         username = session.get('username')
@@ -208,16 +217,17 @@ def report():
 
         return redirect(url_for('report'))
 
-    return render_template('report.html')
+    return render_template('report.html',lang=lang)
 
 #리소스 선택 저장
 @app.route('/manage', methods=['GET', 'POST'])
 def manage():
+    lang = session.get('lang','ko')
     if request.method == 'POST':
         session['selected_resources'] = request.form.getlist('resources')
         flash("설정이 저장되었습니다.")
         return redirect(url_for('dashboard'))
-    return render_template('manage.html')
+    return render_template('manage.html',lang=lang)
 
 #서버 실행 (포트 5000, 외부 접속 허용)
 if __name__ == '__main__':

@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>이메일 변경</title>
+    <title>{{'이메일 변경' if lang == 'ko' else 'Check Dashboard'}}</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; }
         .container { max-width: 500px; margin: 100px auto; background: white; padding: 40px; border-radius: 10px; text-align: center; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
@@ -25,11 +25,11 @@
 <body>
     <div id="menuToggle">☰</div>
     <div id="sideMenu">
-        <a href="/dashboard">대시보드 확인</a>
-        <a href="/user_info" style="background-color:rgba(128,167,250,0.82);">사용자 정보 수정</a>
-        <a href="/report">보고서 작성</a>
-        <a href="/manage">대시보드 관리</a>
-        <a href="/logout">로그아웃</a>
+        <a href="/dashboard">{{'대시보드 확인' if lang == 'ko' else 'Check Dashboard'}}</a>
+        <a href="/user_info" style="background-color:rgba(128,167,250,0.82);">{{'사용자 정보 수정' if lang == 'ko' else 'Modifying User Information'}}</a>
+        <a href="/report">{{'보고서 작성' if lang == 'ko' else 'Creating a Report'}}</a>
+        <a href="/manage">{{'대시보드 관리' if lang == 'ko' else 'Managing dashboards'}}</a>
+        <a href="/logout">{{'로그아웃' if lang == 'ko' else 'logout'}}</a>
     </div>
     <script>
         document.getElementById("menuToggle").onclick = function () {
@@ -38,13 +38,13 @@
         };
     </script>
 <div class="container">
-    <h2>이메일 변경</h2>
+    <h2>{{'이메일 변경' if lang == 'ko' else 'Change Email'}}</h2>
     <form method="POST">
-        <label for="email">새 이메일 주소:</label><br>
+        <label for="email">{{'새 이메일 주소' if lang == 'ko' else 'Edit New Email'}}</label><br>
         <input type="email" name="email" id="email" required><br>
         <input type="submit" value="변경">
     </form>
-    <a href="/user_info">← 사용자 정보로 돌아가기</a>
+    <a href="/user_info">{{'← 사용자 정보로 돌아가기' if lang == 'ko' else '←Return to user information'}}</a>
 </div>
 </body>
 </html>
