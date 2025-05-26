@@ -7,18 +7,12 @@ from zabbix_api import (
 from report_generator import generate_pdf_report
 from email_sender import send_email_with_attachment
 from translations import translations  # 추가
-
-@app.context_processor
-def inject_translator():
-    def _(text):
-        lang = session.get('lang', 'ko')
-        return translations.get(lang, {}).get(text, text)
-    return dict(_=_)
-
 import time
+
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
+
 
 #다국어 지원 코드
 @app.context_processor
