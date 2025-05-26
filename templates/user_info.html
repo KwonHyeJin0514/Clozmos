@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="refresh" content="10">
-    <title>사용자 정보 수정</title>
+    <title>{{_('User Info')}}</title>
     <style>
         /* 사이드 메뉴 스타일 */
         #menuToggle {
@@ -115,7 +115,7 @@
     </script>
 
     <div class="container">
-        <h2>사용자 정보 수정</h2>
+        <h2>{{_('User Info')}}</h2>
         <div class="field">
             <label>ID</label>
             <span>{{ username }}</span>
@@ -125,16 +125,16 @@
             <span>{{ email }}</span>
         </div>
         <div class="btn-group">
-            <a href="/user_info_name">닉네임 수정</a>
-            <a href="/user_info_email">이메일 수정</a>
+            <a href="/user_info_name"> {{_('Nickname')}}</a>
+            <a href="/user_info_email"> {{_('Edit Email')}}</a>
         </div>
         <div class="btn-group" style="margin-top: 10px;">
-            <a href="/user_info_password">비밀번호 수정</a>
-            <a href="/user_info_alert">알림 설정</a>
+            <a href="/user_info_password"> {{_('Change Password')}}</a>
+            <a href="/user_info_alert"> {{_('Alert Settings')}}</a>
         </div>
         <div class="btn-group" style="margin-top: 10px;">
-            <a href="/user_info_language">언어 변경</a>
-            <a href="/user_info_delete" style="background-color: #c0392b;">계정 탈퇴</a>
+            <a href="/user_info_language">{{_('Language')}}</a>
+            <a href="/user_info_delete" style="background-color: #c0392b;">{{_('Delete Account')}}</a>
         </div>
     </div>
 </body>

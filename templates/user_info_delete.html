@@ -2,7 +2,7 @@
 <html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
-    <title>계정 탈퇴</title>
+    <title>{{_('Delete Account')}}</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; }
         #menuToggle { position: absolute; top: 20px; left: 20px; font-size: 30px; cursor: pointer; color: #5c8cf5; z-index: 1100; }
@@ -34,12 +34,12 @@
         };
     </script>
 <div class="container">
-    <h2>계정 탈퇴</h2>
-    <p>정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</p>
+    <h2>{{_('Delete Account')}}</h2>
+    <p>{{_('Are you sure you want to delete the account? This operation is irreversible.')}}</p>
     <form method="POST">
         <input type="submit" value="확인하고 탈퇴">
     </form>
-    <a href="/user_info">← 사용자 정보로 돌아가기</a>
+    <a href="/user_info">{{_('Back to Info')}}</a>
 </div>
 </body>
 </html>

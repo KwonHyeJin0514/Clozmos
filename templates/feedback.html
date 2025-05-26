@@ -2,7 +2,7 @@
 <html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
-    <title>의견 보내기</title>
+    <title>{{_('Send Comments')}}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -43,7 +43,7 @@
 </head>
 <body>
     <div class="container">
-        <h2>관리자에게 의견 보내기</h2>
+        <h2>{{_('Send comments to Administrator')}}</h2>
         {% with messages = get_flashed_messages() %}
           {% if messages %}
             <div class="msg">{{ messages[0] }}</div>
@@ -54,7 +54,7 @@
             <input type="submit" value="전송">
         </form>
         <div style="text-align: center;">
-            <a href="/dashboard">← 대시보드로 돌아가기</a>
+            <a href="/dashboard">{{_('Back to Dashboard')}}</a>
         </div>
     </div>
 </body>

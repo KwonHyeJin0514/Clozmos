@@ -2,7 +2,7 @@
 <html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
-    <title>알림 수신 설정</title>
+    <title>{{_('Setting Up Notification Receipt')}}</title>
         <style>
             body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; }
             #menuToggle { position: absolute; top: 20px; left: 20px; font-size: 30px; cursor: pointer; color: #5c8cf5; z-index: 1100; }
@@ -47,13 +47,13 @@
         };
     </script>
 <div class="container">
-    <h2>알림 수신 이메일 설정</h2>
+    <h2>{{_('Setting Up Notification Receive Email')}}</h2>
     <form method="POST">
-        <label for="alert_email">이메일 주소:</label><br>
+        <label for="alert_email">{{_('Email Adress :')}}</label><br>
         <input type="email" name="alert_email" id="alert_email" required><br>
         <input type="submit" value="변경">
     </form>
-    <a href="/user_info">← 사용자 정보로 돌아가기</a>
+    <a href="/user_info">{{_('Back to Info')}}</a>
 </div>
 </body>
 </html>

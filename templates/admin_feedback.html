@@ -2,7 +2,7 @@
 <html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
-    <title>{{'사용자 의견 목록' if lang == 'ko' else 'List of user comments'}}</title>
+    <title>{{_('List of user comments')}}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -25,14 +25,14 @@
 </head>
 <body>
     <div class="container">
-        <h2>{{'사용자 의견 목록' if lang == 'ko' else 'List of user comments'}}</h2>
+        <h2>{{_('List of user comments')}}</h2>
         {% for fb in feedbacks %}
             <div class="feedback-box">{{ fb }}</div>
         {% else %}
-            <p>{{'의견이 없습니다.' if lang == 'ko' else 'No comments'}}</p>
+            <p>{{_('No comments')}}</p>
         {% endfor %}
         <div style="text-align: center; margin-top: 20px;">
-            <a href="/dashboard">{{'← 대시보드로 돌아가기' if lang == 'ko' else '←GoBack Dashboard'}}</a>
+            <a href="/dashboard">{{_('Back to Dashboard')}}</a>
         </div>
     </div>
 </body>

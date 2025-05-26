@@ -2,7 +2,7 @@
 <html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
-    <title>{{'이메일 변경' if lang == 'ko' else 'Check Dashboard'}}</title>
+    <title>{{_('Change Email')}}</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; }
         .container { max-width: 500px; margin: 100px auto; background: white; padding: 40px; border-radius: 10px; text-align: center; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
@@ -38,13 +38,13 @@
         };
     </script>
 <div class="container">
-    <h2>{{'이메일 변경' if lang == 'ko' else 'Change Email'}}</h2>
+    <h2>{{_('Change Email')}}</h2>
     <form method="POST">
-        <label for="email">{{'새 이메일 주소' if lang == 'ko' else 'Edit New Email'}}</label><br>
+        <label for="email">{{_('Edit New Email')}}</label><br>
         <input type="email" name="email" id="email" required><br>
         <input type="submit" value="변경">
     </form>
-    <a href="/user_info">{{'← 사용자 정보로 돌아가기' if lang == 'ko' else '←Return to user information'}}</a>
+    <a href="/user_info">{{_('Back to Info')}}</a>
 </div>
 </body>
 </html>
