@@ -160,7 +160,7 @@ def user_info_email():
         update_user_field(token, 'email', request.form['email'])
         return redirect(url_for('user_info'))
     lang = session.get('lang','ko')
-    return render_template('user_info_email.html',lang=session.get('lang', 'ko')))
+    return render_template('user_info_email.html',lang=session.get('lang', 'ko'))
 
 #사용자 언어 수정
 @app.route('/user_info_language', methods=['GET', 'POST'])
