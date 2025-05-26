@@ -33,12 +33,13 @@
     };
 </script>
 <div class="container">
-    <h2>언어 설정</h2>
+    <h2>{{_('Language')}}</h2>
     <form method="POST">
-        <label for="language">{{_('Choose Language :')}}</label><br>
+        <label for="language">{{ translations[lang]['Language'] }}</label><br>
         <select name="language" id="language">
-            <option value="ko">한국어</option>
-            <option value="en">English</option>
+            <option value="ko" {% if lang == 'ko' %}selected{% endif %}>{{ translations[lang]['korean'] }}</option>
+            <option value="en" {% if lang == 'en' %}selected{% endif %}>{{ translations[lang]['english'] }}</option>
+
         </select><br>
         <input type="submit" value="저장">
     </form>

@@ -7,6 +7,9 @@ translations = {
         "Logout": "로그아웃",
         "Submit": "저장",
         "Login": "로그인",
+        
+        'korean': '한국어',
+        'english': '영어',
 
         "Nickname": "닉네임 수정",
         "Edit Email": "이메일 수정",
@@ -56,6 +59,9 @@ translations = {
         "Logout": "Logout",
         "Submit": "Submit",
         "Login": "Login",
+        
+        'korean': 'Korean',
+        'english': 'English',
 
         "Nickname": "Edit Nickname",
         "Edit Email": "Edit Email",
