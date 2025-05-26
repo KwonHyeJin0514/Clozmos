@@ -161,7 +161,7 @@ def user_info_email():
 def user_info_language():
     token = session['auth_token']
     if request.method == 'POST':
-        new_lang = request.form['lang']
+        new_lang = request.form['language']
         update_user_field(token, 'lang', new_lang)
         session['lang'] = new_lang  # 세션에 반영
         return redirect(url_for('user_info'))

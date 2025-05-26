@@ -120,7 +120,7 @@ def get_alert_logs(token, host_name):
             "expandDescription": True,
             "sortfield": "lastchange",
             "sortorder": "DESC",
-            "limit": 7
+            "limit": 20
         },
         "auth": token, "id": 8
     })["result"]
@@ -128,6 +128,9 @@ def get_alert_logs(token, host_name):
     results = []
     for t in triggers:
         ts = int(t["lastchange"])
+        if ts == 0:
+            continue  # 1970년 로그 무시
+
         level = int(t["priority"])
         color = "red" if level >= 4 else "black"
         results.append({
@@ -135,4 +138,7 @@ def get_alert_logs(token, host_name):
             "message": t["description"],
             "color": color
         })
+
+        if len(results) >= max_logs:
+            break
     return results
