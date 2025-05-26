@@ -6,19 +6,17 @@
     <title>{{ _('Dashboard') }}</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            background-color: #f4f6f9;
+        }
         .dashboard-title {
             text-align: center;
             font-size: 28px;
             margin-top: 20px;
             margin-bottom: 30px;
         }
-        
-        body {
-            font-family: Arial, sans-serif;
-            padding: 30px;
-            background-color: #f4f6f9;
-        }
-        /* 사이드 메뉴 스타일 */
         #menuToggle {
             position: absolute;
             top: 20px;
@@ -26,8 +24,8 @@
             font-size: 30px;
             cursor: pointer;
             z-index: 1100;
+            color: rgba(92, 140, 245, 0.82);
         }
-
         #sideMenu {
             height: 100%;
             width: 250px;
@@ -40,242 +38,103 @@
             overflow-x: hidden;
             z-index: 1000;
         }
-
         #sideMenu a {
-            padding: 8px 32px;
+            padding: 12px 32px;
             text-decoration: none;
             font-size: 18px;
             color: white;
             display: block;
         }
-
         #sideMenu a:hover {
             background-color: #34495e;
+        }
+        canvas {
+            margin-bottom: 40px;
+        }
+        .alert-log-title {
+            font-size: 20px;
+            margin-top: 40px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    
-    <h2 class="dashboard-title">{{ username }} - {{ _('Dashboard') }}</h2>
-    {% if alerts %}
-        <div style="text-align: center; color: red; font-weight: bold;">
-            {% for alert in alerts %}
-                <p>{{ alert }}</p>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    
-
-    <div id="menuToggle" style="color:rgba(92, 140, 245, 0.82);">☰</div>
-
+    <div id="menuToggle">☰</div>
     <div id="sideMenu">
         <a href="/dashboard" style="background-color:rgba(128,167,250,0.82);">{{ _('Dashboard') }}</a>
         <a href="/user_info">{{ _('User Info') }}</a>
         <a href="/report">{{ _('Report') }}</a>
         <a href="/manage">{{ _('Manage Dashboard') }}</a>
         <a href="/logout">{{ _('Logout') }}</a>
-    
     </div>
 
-    <script>
-        document.getElementById("menuToggle").onclick = function () {
-            var menu = document.getElementById("sideMenu");
-            if (menu.style.left === "-250px") {
-                menu.style.left = "0";
-            } else {
-                menu.style.left = "-250px";
-            }
-        };
-    </script>
+    <h2 class="dashboard-title">{{ username }} - {{ _('Dashboard') }}</h2>
 
     <div id="charts">
-        <canvas id="cpuChart" width="600" height="250"></canvas>
-        <canvas id="memoryChart" width="600" height="250"></canvas>
+        <canvas id="cpuLoadChart" width="600" height="250"></canvas>
+        <canvas id="cpuUtilChart" width="600" height="250"></canvas>
+        <canvas id="memAvailChart" width="600" height="250"></canvas>
+        <canvas id="memUtilChart" width="600" height="250"></canvas>
+        <canvas id="diskChart" width="600" height="250"></canvas>
+        <canvas id="netInOutChart" width="600" height="250"></canvas>
+        <canvas id="packetLossChart" width="600" height="250"></canvas>
+        <canvas id="uptimeChart" width="600" height="250"></canvas>
+        <canvas id="portChart" width="600" height="250"></canvas>
     </div>
 
-    <h3>{{'최근 알림 로그' if lang == 'ko' else 'Recent Alert Log'}}</h3>
-    <ul style="list-style: none; padding: 0;">
-    <ul>
+    <h3 class="alert-log-title">{{ _('Recent Alert Logs') }}</h3>
+    <ul style="list-style: none; padding: 0; text-align: center;">
         {% for log in alerts %}
-            <li style="color: {{ log.color }}">
-                {{ log.time }} - {{ log.message }}
-            </li>
+            <li style="color: {{ log.color }};">{{ log.time }} - {{ log.message }}</li>
         {% endfor %}
     </ul>
 
-    <style>
-        .alert {
-            margin: 8px auto;
-            padding: 10px 15px;
-            border-radius: 6px;
-            width: 600px;
-            font-size: 16px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-    
-        .alert.info {
-            background-color: #e8f0fe;
-            color: #1a73e8;
-            border-left: 6px solid #1a73e8;
-        }
-    
-        .alert.warning {
-            background-color: #fff3cd;
-            color: #856404;
-            border-left: 6px solid #ffc107;
-        }
-    
-        .alert.danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border-left: 6px solid #dc3545;
-        }
-    </style>
-
-
     <script>
+        document.getElementById("menuToggle").onclick = function () {
+            const menu = document.getElementById("sideMenu");
+            menu.style.left = (menu.style.left === "-250px") ? "0" : "-250px";
+        };
+
         async function drawCharts() {
-    	try {
-       	 const res = await fetch("/api/data?host={{ selected_host }}");
-        	const data = await res.json();
-
-      	  if (data.error) {
-         	   alert("데이터 불러오기 실패: " + data.error);
-         	   return;
-    	    }
-
-            //cpu 평균 부하 (load)
-            new Chart(document.getElementById('cpuChart'), {
-                type: 'line',
-                data: {
-                    labels: data.cpu.timestamps,
-                    datasets: [{
-                        label: 'CPU 사용률',
-                        data: data.cpu.values,
-                        borderColor: 'red',
-                        fill: false
-                    }]
+            try {
+                const res = await fetch("/api/data?host={{ selected_host }}");
+                const data = await res.json();
+                if (data.error) {
+                    alert("{{ _('Failed to load data') }}: " + data.error);
+                    return;
                 }
-            });
 
-            //cpu 사용률 (util)
-            new Chart(document.getElementById('memoryChart'), {
-                type: 'line',
-                data: {
-                    labels: data.memory.timestamps,
-                    datasets: [{
-                        label: '메모리 사용량',
-                        data: data.memory.values,
-                        borderColor: 'blue',
-                        fill: false
-                    }]
-                }
-            });
+                const configs = [
+                    { id: 'cpuLoadChart', label: '{{ _("CPU Load") }}', key: 'cpu_load', color: 'red' },
+                    { id: 'cpuUtilChart', label: '{{ _("CPU Usage") }}', key: 'cpu_util', color: 'orange' },
+                    { id: 'memAvailChart', label: '{{ _("Available Memory") }}', key: 'mem_avail', color: 'blue' },
+                    { id: 'memUtilChart', label: '{{ _("Memory Utilization") }}', key: 'mem_util', color: 'purple' },
+                    { id: 'diskChart', label: '{{ _("Disk Usage") }}', key: 'disk', color: 'brown' },
+                    { id: 'netInOutChart', label: '{{ _("Network In/Out") }}', key: 'network', color: 'teal' },
+                    { id: 'packetLossChart', label: '{{ _("Packet Loss") }}', key: 'loss', color: 'black' },
+                    { id: 'uptimeChart', label: '{{ _("System Uptime") }}', key: 'uptime', color: 'green' },
+                    { id: 'portChart', label: '{{ _("Service Port Status") }}', key: 'port', color: 'gray' }
+                ];
 
-            //사용가능한 메모리 (size)
-            new Chart(document.getElementById('cpuChart'), {
-                type: 'line',
-                data: {
-                    labels: data.cpu.timestamps,
-                    datasets: [{
-                        label: 'CPU 사용률',
-                        data: data.cpu.values,
-                        borderColor: 'red',
-                        fill: false
-                    }]
-                }
-            });
-
-            //전체 대비 사용률(계산)
-            new Chart(document.getElementById('cpuChart'), {
-                type: 'line',
-                data: {
-                    labels: data.cpu.timestamps,
-                    datasets: [{
-                        label: 'CPU 사용률',
-                        data: data.cpu.values,
-                        borderColor: 'red',
-                        fill: false
-                    }]
-                }
-            });
-
-            //디스크 사용률(vfs, fs, size)
-            new Chart(document.getElementById('cpuChart'), {
-                type: 'line',
-                data: {
-                    labels: data.cpu.timestamps,
-                    datasets: [{
-                        label: 'CPU 사용률',
-                        data: data.cpu.values,
-                        borderColor: 'red',
-                        fill: false
-                    }]
-                }
-            });
-            //송수신 바이트 수(in Eth0)
-            new Chart(document.getElementById('cpuChart'), {
-                type: 'line',
-                data: {
-                    labels: data.cpu.timestamps,
-                    datasets: [{
-                        label: 'CPU 사용률',
-                        data: data.cpu.values,
-                        borderColor: 'red',
-                        fill: false
-                    }]
-                }
-            });
-
-            //네트워크 패킷 손실율
-            new Chart(document.getElementById('cpuChart'), {
-                type: 'line',
-                data: {
-                    labels: data.cpu.timestamps,
-                    datasets: [{
-                        label: 'CPU 사용률',
-                        data: data.cpu.values,
-                        borderColor: 'red',
-                        fill: false
-                    }]
-                }
-            });
-
-            //시스템 부팅 후 경과 시간(system.uptime)
-            new Chart(document.getElementById('cpuChart'), {
-                type: 'line',
-                data: {
-                    labels: data.cpu.timestamps,
-                    datasets: [{
-                        label: 'CPU 사용률',
-                        data: data.cpu.values,
-                        borderColor: 'red',
-                        fill: false
-                    }]
-                }
-            });
-
-            //서비스 상태 (특정 포트의 오픈) (net.tcp.service[ssh]) 응답 없으면 즉시 알림림
-            new Chart(document.getElementById('cpuChart'), {
-                type: 'line',
-                data: {
-                    labels: data.cpu.timestamps,
-                    datasets: [{
-                        label: 'CPU 사용률',
-                        data: data.cpu.values,
-                        borderColor: 'red',
-                        fill: false
-                    }]
-                }
-            });
-  	  } catch (err) {
-   	     console.error("[JS ERROR]", err);
-         if lang == 'ko'
-   	     alert("그래프 렌더링 중 오류가 발생했습니다.");
-         else
-         alert("Error rendering graph")
- 	   }
+                configs.forEach(cfg => {
+                    const ctx = document.getElementById(cfg.id).getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: data[cfg.key]?.timestamps || [],
+                            datasets: [{
+                                label: cfg.label,
+                                data: data[cfg.key]?.values || [],
+                                borderColor: cfg.color,
+                                fill: false
+                            }]
+                        }
+                    });
+                });
+            } catch (err) {
+                console.error("[JS ERROR]", err);
+                alert("{{ _('Error rendering graph') }}");
+            }
         }
 
         drawCharts();

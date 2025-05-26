@@ -7,6 +7,7 @@ translations = {
         "Logout": "로그아웃",
         "Language": "언어 설정",
         "Submit": "저장",
+        "Login": "로그인",
         "Change Password": "비밀번호 변경",
         "Edit Email": "이메일 수정",
         "Nickname": "닉네임 수정",
@@ -15,6 +16,18 @@ translations = {
         "Send Feedback": "관리자에게 의견 보내기",
         "Back to Dashboard": "← 대시보드로 돌아가기",
         "Back to Info": "← 사용자 정보로 돌아가기"
+        "CPU Load": "CPU 평균 부하",
+        "CPU Usage": "CPU 사용률",
+        "Available Memory": "사용 가능한 메모리",
+        "Memory Utilization": "메모리 사용률",
+        "Disk Usage": "디스크 사용률",
+        "Network In/Out": "네트워크 송수신 바이트 수",
+        "Packet Loss": "패킷 손실율",
+        "System Uptime": "부팅 후 경과 시간",
+        "Service Port Status": "서비스 포트 상태",
+        "Recent Alert Logs": "최근 알림 로그",
+        "Failed to load data": "데이터 불러오기 실패",
+        "Error rendering graph": "그래프 렌더링 중 오류가 발생했습니다."
     },
     "en": {
         "Dashboard": "Dashboard",
@@ -32,5 +45,6 @@ translations = {
         "Send Feedback": "Send Feedback to Admin",
         "Back to Dashboard": "← Back to Dashboard",
         "Back to Info": "← Back to User Info"
+        
     }
 }
