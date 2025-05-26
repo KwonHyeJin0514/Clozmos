@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
     <title>{{'이메일 변경' if lang == 'ko' else 'Check Dashboard'}}</title>
@@ -25,11 +25,11 @@
 <body>
     <div id="menuToggle">☰</div>
     <div id="sideMenu">
-        <a href="/dashboard">{{'대시보드 확인' if lang == 'ko' else 'Check Dashboard'}}</a>
-        <a href="/user_info" style="background-color:rgba(128,167,250,0.82);">{{'사용자 정보 수정' if lang == 'ko' else 'Modifying User Information'}}</a>
-        <a href="/report">{{'보고서 작성' if lang == 'ko' else 'Creating a Report'}}</a>
-        <a href="/manage">{{'대시보드 관리' if lang == 'ko' else 'Managing dashboards'}}</a>
-        <a href="/logout">{{'로그아웃' if lang == 'ko' else 'logout'}}</a>
+        <a href="/dashboard">{{ _('Dashboard') }}</a>
+        <a href="/user_info" style="background-color:rgba(128,167,250,0.82);" >{{ _('User Info') }}</a>
+        <a href="/report">{{ _('Report') }}</a>
+        <a href="/manage">{{ _('Manage Dashboard') }}</a>
+        <a href="/logout">{{ _('Logout') }}</a>
     </div>
     <script>
         document.getElementById("menuToggle").onclick = function () {

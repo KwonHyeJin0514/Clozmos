@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="refresh" content="10">
-    <title>{{'모니터링 대시보드' if lang == 'ko' else 'Monitoring Dashboard'}}</title>
+    <title>{{ _('Dashboard') }}</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .dashboard-title {
@@ -56,7 +56,7 @@
 </head>
 <body>
     
-    <h2 class="dashboard-title">{{ username }}{{'님의 리소스 대시보드' if lang == 'ko' else '`s Dashboard'}}</h2>
+    <h2 class="dashboard-title">{{ username }} - {{ _('Dashboard') }}</h2>
     {% if alerts %}
         <div style="text-align: center; color: red; font-weight: bold;">
             {% for alert in alerts %}
@@ -70,11 +70,12 @@
     <div id="menuToggle" style="color:rgba(92, 140, 245, 0.82);">☰</div>
 
     <div id="sideMenu">
-        <a href="/dashboard" style="background-color:rgba(128,167,250,0.82);">{{'대시보드 확인' if lang == 'ko' else 'Check Dashboard'}}</a>
-        <a href="/user_info" >{{'사용자 정보 수정' if lang == 'ko' else 'Modifying User Information'}}</a>
-        <a href="/report">{{'보고서 작성' if lang == 'ko' else 'Creating a Report'}}</a>
-        <a href="/manage">{{'대시보드 관리' if lang == 'ko' else 'Managing dashboards'}}</a>
-        <a href="/logout">{{'로그아웃' if lang == 'ko' else 'logout'}}</a>
+        <a href="/dashboard" style="background-color:rgba(128,167,250,0.82);">{{ _('Dashboard') }}</a>
+        <a href="/user_info">{{ _('User Info') }}</a>
+        <a href="/report">{{ _('Report') }}</a>
+        <a href="/manage">{{ _('Manage Dashboard') }}</a>
+        <a href="/logout">{{ _('Logout') }}</a>
+    
     </div>
 
     <script>

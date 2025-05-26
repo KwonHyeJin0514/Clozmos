@@ -6,16 +6,33 @@ from zabbix_api import (
 )
 from report_generator import generate_pdf_report
 from email_sender import send_email_with_attachment
+from translations import translations  # 추가
+
+@app.context_processor
+def inject_translator():
+    def _(text):
+        lang = session.get('lang', 'ko')
+        return translations.get(lang, {}).get(text, text)
+    return dict(_=_)
+
 import time
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
+#다국어 지원 코드
+@app.context_processor
+def inject_translator():
+    def _(text):
+        lang = session.get('lang', 'ko')
+        return translations.get(lang, {}).get(text, text)
+    return dict(_=_)
+
 #로그인 화면
 @app.route('/')
 def index():
     lang = session.get('lang','ko')
-    return render_template('login.html', lang=lang)
+    return render_template('login.html', lang=session.get('lang', 'ko'))
 
 #로그인 시도가 발생하면 데이터베이스와 비교
 @app.route('/login', methods=['POST'])
@@ -33,6 +50,7 @@ def login():
         session['username'] = username
         session['auth_token'] = token
         session['is_admin'] = (username.lower() == 'admin')
+        session['lang'] = get_user_info(token).get('lang','ko')
         return redirect(url_for('dashboard'))
     except:
         flash("로그인 실패. 호스트명 또는 비밀번호를 확인하세요.")
@@ -66,7 +84,9 @@ def dashboard():
                            is_admin=is_admin,
                            selected_host=selected_host,
                            hosts=get_all_hosts(token) if is_admin else [],
-                           alerts=get_alert_logs(token, selected_host))
+                           alerts=get_alert_logs(token, selected_host),
+                           lang=session.get('lang', 'ko'))
+
 
 #api가져와서 리소스 데이터 표시
 @app.route('/api/data')
@@ -120,7 +140,7 @@ def user_info():
     token = session['auth_token']
     info = get_user_info(token)
     lang = session.get('lang','ko')
-    return render_template('user_info.html', user=info, lang=lang)
+    return render_template('user_info.html', user=info, lang=session.get('lang', 'ko'))
 
 #사용자 닉네임 수정
 @app.route('/user_info_name', methods=['GET', 'POST'])
@@ -130,7 +150,7 @@ def user_info_name():
         update_user_field(token, 'alias', request.form['alias'])
         return redirect(url_for('user_info'))
     lang = session.get('lang','ko')
-    return render_template('user_info_name.html', lang=lang)
+    return render_template('user_info_name.html', lang=session.get('lang', 'ko'))
 
 #사용자 이메일 수정
 @app.route('/user_info_email', methods=['GET', 'POST'])
@@ -140,17 +160,18 @@ def user_info_email():
         update_user_field(token, 'email', request.form['email'])
         return redirect(url_for('user_info'))
     lang = session.get('lang','ko')
-    return render_template('user_info_email.html',lnag=lang)
+    return render_template('user_info_email.html',lang=session.get('lang', 'ko')))
 
 #사용자 언어 수정
 @app.route('/user_info_language', methods=['GET', 'POST'])
 def user_info_language():
     token = session['auth_token']
-    lang = session.get('lang','ko')
     if request.method == 'POST':
-        update_user_field(token, 'lang', request.form['language'])
+        new_lang = request.form['lang']
+        update_user_field(token, 'lang', new_lang)
+        session['lang'] = new_lang  # 세션에 반영
         return redirect(url_for('user_info'))
-    return render_template('user_info_language.html',lang=lang)
+    return render_template('user_info_language.html', lang=session.get('lang', 'ko'))
 
 #알림 수신 이메일 변경
 @app.route('/user_info_alert', methods=['GET', 'POST'])
@@ -160,7 +181,7 @@ def user_info_alert():
     if request.method == 'POST':
         update_user_field(token, 'alert_email', request.form['alert_email'])
         return redirect(url_for('user_info'))
-    return render_template('user_info_alert.html',lang=lang)
+    return render_template('user_info_alert.html',lang=session.get('lang', 'ko'))
 
 #비밀번호 변경
 @app.route('/user_info_password', methods=['GET', 'POST'])
@@ -179,7 +200,7 @@ def user_info_password():
             update_user_field(token, 'passwd', new1)
             flash("비밀번호가 변경되었습니다.")
         return redirect(url_for('user_info_password'))
-    return render_template('user_info_password.html',lang=lang)
+    return render_template('user_info_password.html',lang=session.get('lang', 'ko'))
 
 #계정 탈퇴
 @app.route('/user_info_delete', methods=['GET', 'POST'])
@@ -190,7 +211,7 @@ def user_info_delete():
         delete_user_account(token)
         flash("계정이 삭제되었습니다.")
         return redirect(url_for('logout'))
-    return render_template('user_info_delete.html',lang=lang)
+    return render_template('user_info_delete.html',lang=session.get('lang', 'ko'))
 
 #보고서 생성 및 이메일 전송
 @app.route('/report', methods=['GET', 'POST'])
@@ -217,7 +238,7 @@ def report():
 
         return redirect(url_for('report'))
 
-    return render_template('report.html',lang=lang)
+    return render_template('report.html',lang=session.get('lang', 'ko'))
 
 #리소스 선택 저장
 @app.route('/manage', methods=['GET', 'POST'])
@@ -227,7 +248,7 @@ def manage():
         session['selected_resources'] = request.form.getlist('resources')
         flash("설정이 저장되었습니다.")
         return redirect(url_for('dashboard'))
-    return render_template('manage.html',lang=lang)
+    return render_template('manage.html',lang=session.get('lang', 'ko'))
 
 #서버 실행 (포트 5000, 외부 접속 허용)
 if __name__ == '__main__':

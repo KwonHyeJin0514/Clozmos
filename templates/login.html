@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
     <title>클라우드 기반 모니터링 및 알람 시스템</title>
@@ -81,19 +81,19 @@
 </head>
 <body>
 
-    <div class="header">클라우드 기반 모니터링 및 알람 시스템</div>
+    <div class="header">{{ _('Dashboard') }}</div>
 
     <div class="login-container">
         <form class="login-box" method="POST" action="/login">
-            <h2>로그인</h2>
+            <h2>{{ _('Login') }}</h2>
             {% with messages = get_flashed_messages() %}
               {% if messages %}
                 <div class="error-message">{{ messages[0] }}</div>
               {% endif %}
             {% endwith %}
-            <input type="text" name="username" placeholder="아이디" required>
-            <input type="password" name="password" placeholder="비밀번호" required>
-            <input type="submit" value="로그인">
+            <input type="text" name="username" placeholder="ID" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <input type="submit" value="{{ _('Submit') }}">
         </form>
     </div>
 

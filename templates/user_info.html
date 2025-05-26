@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="refresh" content="10">
@@ -96,12 +96,11 @@
     <div id="menuToggle" style="color:rgba(92, 140, 245, 0.82);" >☰</div>
 
     <div id="sideMenu">
-        <a href="/dashboard" >대시보드 확인</a>
-        <a href="/user_info" style="background-color:rgba(128, 167, 250, 0.82);">사용자 정보 수정</a>
-        <a href="/report">보고서 작성</a>
-        <a href="/manage">대시보드 관리</a>
-        <a href="/logout">로그아웃</a>
-    </div>
+        <a href="/dashboard">{{ _('Dashboard') }}</a>
+        <a href="/user_info" style="background-color:rgba(128,167,250,0.82);" >{{ _('User Info') }}</a>
+        <a href="/report">{{ _('Report') }}</a>
+        <a href="/manage">{{ _('Manage Dashboard') }}</a>
+        <a href="/logout">{{ _('Logout') }}</a>
 
     <script>
         document.getElementById("menuToggle").onclick = function () {
