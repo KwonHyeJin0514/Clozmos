@@ -18,21 +18,19 @@ app.secret_key = 'your_secret_key'
 #다국어 지원 코드
 @app.context_processor
 def inject_translations():
-    lang = getattr(g, 'lang', 'ko')  # g.lang이 없으면 기본 'ko'
+    lang = getattr(g, 'lang', 'ko')
     def _(key):
         return translations.get(lang, {}).get(key, key)
     return dict(_=_)
 
-#라우터마다 lang=...을 안하려면면
 @app.before_request
-def detect_language():
+def set_lang():
     token = session.get('auth_token')
     if token:
         info = get_user_info(token)
         g.lang = info.get('lang', 'ko')
     else:
         g.lang = 'ko'
-
 
 #로그인 화면
 @app.route('/')
