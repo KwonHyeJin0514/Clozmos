@@ -4,25 +4,35 @@ from zabbix_api import (
     get_user_info, update_user_field, validate_user_password, delete_user_account,
     get_alert_logs
 )
+
+#자빅스와 연동하기 위해 만든 api 함수들들
 from report_generator import generate_pdf_report
 from email_sender import send_email_with_attachment
+
+#다국어 처리리
 from translations import translations  # 추가
 import time
 from flask import g
 
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
+
+#session 보안을 위하여 비밀키 설정정
+app.secret_key = 'secret_key'
 
 
 #다국어 지원 코드
+
+#번역키를 호출함
 @app.context_processor
 def inject_translations():
+    #현재 언어를 가져오기 (없으면 한국어 기본본)
     lang = getattr(g, 'lang', 'ko')
-    def _(key):
+    def _(key):         #번역 함수 정의의
         return translations.get(lang, {}).get(key, key)
-    return dict(_=_)
+    return dict(_=_)        #_이라는 함수를 등록 => {'_': _}
 
+#언어 설정값을 g.lang에 저장
 @app.before_request
 def set_lang():
     token = session.get('auth_token')
@@ -36,27 +46,28 @@ def set_lang():
 @app.route('/')
 def index():
     lang = session.get('lang','ko')
-    return render_template('login.html', lang=session.get('lang', 'ko'))
+    return render_template('login.html',lang=lang)
 
-#로그인 시도가 발생하면 데이터베이스와 비교
+#로그인 시도가 발생하면 자빅스 api 로그인. 호스트명으로 비교하여 검증하면 session 저장
 @app.route('/login', methods=['POST'])
 def login():
-    username = request.form['username']
-    password = request.form['password']
+    username = request.form['username'] #사용자의 아이디
+    password = request.form['password'] #사용자의 비밀번호
     try:
-        token = get_auth_token(username, password)
-        user = get_user_info(token)
-        session['lang'] = user.get('lang', 'ko')  # Zabbix 인증 토큰 획득
-        host_names = [h['host'] for h in get_all_hosts(token)]
-        if username not in host_names:
+        #사용자가 입력한 정보로 zabbix api에 로그인 요청 -> token을 받음
+        token = get_auth_token(username, password)  # Zabbix 인증 토큰 획득
+        user = get_user_info(token)         #사용자 정보 가져오기
+        session['lang'] = user.get('lang', 'ko')  #계정에 저장된 언어를 lang에 저장장
+        host_names = [h['host'] for h in get_all_hosts(token)] #호스트 목록 확인
+        if username not in host_names: #예외처리
             raise Exception("입력된 이름에 해당하는 호스트가 존재하지 않습니다.")
 
-        session['username'] = username
-        session['auth_token'] = token
-        session['is_admin'] = (username.lower() == 'admin')
-        session['lang'] = get_user_info(token).get('lang','ko')
+        session['username'] = username  #로그인 이름름
+        session['auth_token'] = token   #zabbix api 인증 토큰큰
+        session['is_admin'] = (username.lower() == 'admin')     #관리자 확인
         return redirect(url_for('dashboard'))
     except:
+        #로그인이 실패하면 다시 시도하게 함.
         flash("로그인 실패. 호스트명 또는 비밀번호를 확인하세요.")
         return redirect(url_for('index'))
 
@@ -69,20 +80,25 @@ def logout():
 #대시보드 띄우기
 @app.route('/dashboard')
 def dashboard():
+    #받아온 auth_token의 세션이 만료되거나 없다면 로그인으로 다시 돌아감감
     if 'auth_token' not in session:
         return redirect(url_for('index'))
 
-    token = session['auth_token']
-    is_admin = session.get('is_admin', False)
-    username = session['username']
+    #기본 정보 불러오기기
+    token = session['auth_token']   #api 호출에 사용할 인증 토큰
+    is_admin = session.get('is_admin', False) #관리자의 여부
+    username = session['username']  #로그인한 사용자의 이름
 
-#관리자일 경우 호스트 선택 가능
+    #로그인한게 관리자라면 호스트 선택 가능능
     if is_admin:
-        hosts = get_all_hosts(token)
+        hosts = get_all_hosts(token) #zabbix에 있는 모든 호스트를 가져옴.
+        #url 파라미터 ?host=xxx가 있다면 그 호스트를 없다면 첫번째 호스트를 선택함함
         selected_host = request.args.get('host') or hosts[0]['host']
+    #로그인한게 일반 사용자라면면
     else:
         selected_host = username
 
+    #대시보드의 템플릿을 렌더링
     return render_template('dashboard.html',
                            username=username,
                            is_admin=is_admin,
@@ -144,7 +160,7 @@ def user_info():
     token = session['auth_token']
     info = get_user_info(token)
     lang = session.get('lang','ko')
-    return render_template('user_info.html', user=info, lang=session.get('lang', 'ko'))
+    return render_template('user_info.html', user=info,lang=lang)
 
 #사용자 닉네임 수정
 @app.route('/user_info_name', methods=['GET', 'POST'])
@@ -154,7 +170,7 @@ def user_info_name():
         update_user_field(token, 'alias', request.form['alias'])
         return redirect(url_for('user_info'))
     lang = session.get('lang','ko')
-    return render_template('user_info_name.html', lang=session.get('lang', 'ko'))
+    return render_template('user_info_name.html',lang=lang)
 
 #사용자 이메일 수정
 @app.route('/user_info_email', methods=['GET', 'POST'])
@@ -164,7 +180,7 @@ def user_info_email():
         update_user_field(token, 'email', request.form['email'])
         return redirect(url_for('user_info'))
     lang = session.get('lang','ko')
-    return render_template('user_info_email.html',lang=session.get('lang', 'ko'))
+    return render_template('user_info_email.html',lang=lang)
 
 #사용자 언어 수정
 @app.route('/user_info_language', methods=['GET', 'POST'])
@@ -175,7 +191,7 @@ def user_info_language():
         update_user_field(token, 'lang', new_lang)
         session['lang'] = new_lang  # 세션에 반영
         return redirect(url_for('user_info'))
-    return render_template('user_info_language.html', lang=session.get('lang', 'ko'))
+    return render_template('user_info_language.html',lang=lang)
 
 #알림 수신 이메일 변경
 @app.route('/user_info_alert', methods=['GET', 'POST'])
@@ -185,7 +201,7 @@ def user_info_alert():
     if request.method == 'POST':
         update_user_field(token, 'alert_email', request.form['alert_email'])
         return redirect(url_for('user_info'))
-    return render_template('user_info_alert.html',lang=session.get('lang', 'ko'))
+    return render_template('user_info_alert.html',lang=lang)
 
 #비밀번호 변경
 @app.route('/user_info_password', methods=['GET', 'POST'])
@@ -193,9 +209,9 @@ def user_info_password():
     token = session['auth_token']
     lang = session.get('lang','ko')
     if request.method == 'POST':
-        current = request.form['current_pw']
-        new1 = request.form['new_pw']
-        new2 = request.form['new_pw2']
+        current = request.form['current_password']
+        new1 = request.form['new_password']
+        new2 = request.form['confirm_password']
         if new1 != new2:
             flash("새 비밀번호가 일치하지 않습니다.")
         elif not validate_user_password(token, current):
@@ -204,7 +220,7 @@ def user_info_password():
             update_user_field(token, 'passwd', new1)
             flash("비밀번호가 변경되었습니다.")
         return redirect(url_for('user_info_password'))
-    return render_template('user_info_password.html',lang=session.get('lang', 'ko'))
+    return render_template('user_info_password.html',lang=lang)
 
 #계정 탈퇴
 @app.route('/user_info_delete', methods=['GET', 'POST'])
@@ -215,22 +231,27 @@ def user_info_delete():
         delete_user_account(token)
         flash("계정이 삭제되었습니다.")
         return redirect(url_for('logout'))
-    return render_template('user_info_delete.html',lang=session.get('lang', 'ko'))
+    return render_template('user_info_delete.html',lang=lang)
 
 #보고서 생성 및 이메일 전송
 @app.route('/report', methods=['GET', 'POST'])
 def report():
-    lang = session.get('lang','ko')
+    lang = session.get('lang', 'ko')
     if request.method == 'POST':
         token = session.get('auth_token')
         username = session.get('username')
         start = request.form.get('start')
         email = request.form.get('email')
         end = time.strftime('%Y-%m-%d %H:%M:%S')
+        action = request.form.get('action')
 
         if start == 'custom':
             start = request.form.get('start_custom')
             end = request.form.get('end_custom')
+
+        if action == "preview":
+            preview = f"{username}님의 보고서 (기간: {start} ~ {end})\n리소스 그래프, 최대치, 로그 요약 포함"
+            return render_template("report.html", preview=preview ,lang=lang)
 
         try:
             selected_resources = session.get('selected_resources')
@@ -242,7 +263,7 @@ def report():
 
         return redirect(url_for('report'))
 
-    return render_template('report.html',lang=session.get('lang', 'ko'))
+    return render_template('report.html', lang=lang)
 
 #리소스 선택 저장
 @app.route('/manage', methods=['GET', 'POST'])
@@ -252,7 +273,7 @@ def manage():
         session['selected_resources'] = request.form.getlist('resources')
         flash("설정이 저장되었습니다.")
         return redirect(url_for('dashboard'))
-    return render_template('manage.html',lang=session.get('lang', 'ko'))
+    return render_template('manage.html',lang=lang)
 
 #서버 실행 (포트 5000, 외부 접속 허용)
 if __name__ == '__main__':

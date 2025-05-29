@@ -2,21 +2,28 @@
 <html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
+    {% comment %} 페이지를 10초마다 새로고침 {% endcomment %}
     <meta http-equiv="refresh" content="10">
+    {% comment %} 브라우저 탭에 뜨는 제목목 {% endcomment %}
     <title>{{ _('Dashboard') }}</title>
+    {% comment %} chart.js 외부 브라우저 불러오기 {% endcomment %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /*페이지 전체의 기본 글꼴과 배경색 설정정*/
         body {
             font-family: Arial, sans-serif;
             padding: 30px;
             background-color: #f4f6f9;
         }
+        /*대시보드 제목이 화면 가운데 정렬*/
         .dashboard-title {
             text-align: center;
+            /*28 사이즈*/
             font-size: 28px;
             margin-top: 20px;
             margin-bottom: 30px;
         }
+        /*왼쪽위에 햄버거 버튼*/
         #menuToggle {
             position: absolute;
             top: 20px;
@@ -56,6 +63,28 @@
             margin-top: 40px;
             text-align: center;
         }
+        /*드롭다운의 스타일*/
+        .host-select {
+        padding: 8px 12px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        /*둥근형태*/
+        border-radius: 6px;
+        background-color: #fff;
+        color: #333;
+        outline: none;
+        /*애니메이션 효과*/
+        transition: border-color 0.3s ease;
+    }
+
+    .host-select:hover {
+        border-color: #5c8cf5;
+    }
+
+    .host-select:focus {
+        border-color: #2980b9;
+        box-shadow: 0 0 5px rgba(41, 128, 185, 0.5);
+    }
     </style>
 </head>
 <body>
@@ -69,6 +98,18 @@
     </div>
 
     <h2 class="dashboard-title">{{ username }} - {{ _('Dashboard') }}</h2>
+
+    {% if is_admin %}
+    <form method="get" action="/dashboard" style="margin-bottom: 30px;">
+        <label for="host" style="font-weight: bold; font-size: 16px; margin-right: 10px;">호스트 선택:</label>
+        <select name="host" id="host" onchange="this.form.submit()" class="host-select">
+            {% for h in hosts %}
+                <option value="{{ h.host }}" {% if h.host == selected_host %}selected{% endif %}>{{ h.host }}</option>
+            {% endfor %}
+        </select>
+    </form>
+    {% endif %}
+
 
     <div id="charts">
         <canvas id="cpuLoadChart" width="600" height="250"></canvas>
