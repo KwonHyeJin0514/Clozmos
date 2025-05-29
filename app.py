@@ -5,7 +5,7 @@ from zabbix_api import (
     get_alert_logs
 )
 
-#자빅스와 연동하기 위해 만든 api 함수들들
+#자빅스와 연동하기 위해 만든 api 함수들
 from report_generator import generate_pdf_report
 from email_sender import send_email_with_attachment
 
@@ -17,7 +17,7 @@ from flask import g
 
 app = Flask(__name__)
 
-#session 보안을 위하여 비밀키 설정정
+#session 보안을 위하여 비밀키 설정
 app.secret_key = 'secret_key'
 
 
@@ -26,7 +26,7 @@ app.secret_key = 'secret_key'
 #번역키를 호출함
 @app.context_processor
 def inject_translations():
-    #현재 언어를 가져오기 (없으면 한국어 기본본)
+    #현재 언어를 가져오기 (없으면 한국어 기본)
     lang = getattr(g, 'lang', 'ko')
     def _(key):         #번역 함수 정의의
         return translations.get(lang, {}).get(key, key)
@@ -57,13 +57,13 @@ def login():
         #사용자가 입력한 정보로 zabbix api에 로그인 요청 -> token을 받음
         token = get_auth_token(username, password)  # Zabbix 인증 토큰 획득
         user = get_user_info(token)         #사용자 정보 가져오기
-        session['lang'] = user.get('lang', 'ko')  #계정에 저장된 언어를 lang에 저장장
+        session['lang'] = user.get('lang', 'ko')  #계정에 저장된 언어를 lang에 저장
         host_names = [h['host'] for h in get_all_hosts(token)] #호스트 목록 확인
         if username not in host_names: #예외처리
             raise Exception("입력된 이름에 해당하는 호스트가 존재하지 않습니다.")
 
-        session['username'] = username  #로그인 이름름
-        session['auth_token'] = token   #zabbix api 인증 토큰큰
+        session['username'] = username  #로그인 이름
+        session['auth_token'] = token   #zabbix api 인증 토큰
         session['is_admin'] = (username.lower() == 'admin')     #관리자 확인
         return redirect(url_for('dashboard'))
     except:
@@ -80,25 +80,25 @@ def logout():
 #대시보드 띄우기
 @app.route('/dashboard')
 def dashboard():
-    #받아온 auth_token의 세션이 만료되거나 없다면 로그인으로 다시 돌아감감
+    #받아온 auth_token의 세션이 만료되거나 없다면 로그인으로 다시 돌아감
     if 'auth_token' not in session:
         return redirect(url_for('index'))
 
-    #기본 정보 불러오기기
+    #기본 정보 불러오기
     token = session['auth_token']   #api 호출에 사용할 인증 토큰
     is_admin = session.get('is_admin', False) #관리자의 여부
     username = session['username']  #로그인한 사용자의 이름
 
-    #로그인한게 관리자라면 호스트 선택 가능능
+    #로그인한게 관리자라면 호스트 선택 가능
     if is_admin:
         hosts = get_all_hosts(token) #zabbix에 있는 모든 호스트를 가져옴.
-        #url 파라미터 ?host=xxx가 있다면 그 호스트를 없다면 첫번째 호스트를 선택함함
+        #드롭다운에서 선택한 사용자가 보이도록 함.
         selected_host = request.args.get('host') or hosts[0]['host']
-    #로그인한게 일반 사용자라면면
+    #로그인한게 일반 사용자라면
     else:
         selected_host = username
 
-    #대시보드의 템플릿을 렌더링
+    #대시보드의 템플릿을 브라우저에 보여줌. 
     return render_template('dashboard.html',
                            username=username,
                            is_admin=is_admin,
@@ -106,7 +106,7 @@ def dashboard():
                            hosts=get_all_hosts(token) if is_admin else [],
                            alerts=get_alert_logs(token, selected_host),
                            lang=session.get('lang', 'ko'))
-
+    #템플릿에서 사용할 수 있도록 변수로 넘겨주기기
 
 #api가져와서 리소스 데이터 표시
 @app.route('/api/data')
@@ -118,7 +118,19 @@ def api_data():
 
         session_resources = session.get('selected_resources') or []
 
-        #리눅스 or 윈도우 모두 모니터링 가능한 리소스
+        # 표시 이름 → 내부 키 매핑
+        metric_key_map = {
+            "CPU 평균 부하": "cpu_load",
+            "CPU 사용률": "cpu_util",
+            "사용 가능한 메모리": "mem_avail",
+            "전체대비 메모리 사용률": "mem_util",
+            "디스크 사용률": "disk",
+            "네트워크 송수신 바이트수": "network",
+            "패킷 손실율": "loss",
+            "부팅 후 경과시간": "uptime",
+            "중요 포트 오픈 여부": "port"
+        }
+
         item_candidates = {
             "CPU 평균 부하": ["system.cpu.load[percpu,avg1]"],
             "CPU 사용률": ["system.cpu.util[,user]", "system.cpu.util"],
@@ -132,6 +144,7 @@ def api_data():
         }
 
         result = {}
+
         for metric, keys in item_candidates.items():
             if session_resources and metric not in session_resources:
                 continue
@@ -140,7 +153,8 @@ def api_data():
                 try:
                     item_id = get_item_id(token, host_id, key)
                     data = get_latest_data(token, item_id)
-                    result[metric] = {
+                    key_name = metric_key_map[metric]
+                    result[key_name] = {
                         "timestamps": [time.strftime('%H:%M:%S', time.localtime(int(d['clock']))) for d in data],
                         "values": [float(d['value']) for d in data]
                     }
@@ -153,6 +167,35 @@ def api_data():
     except Exception as e:
         print("[API ERROR]", str(e))
         return jsonify({"error": str(e)}), 500
+    
+
+#리소스 선택 저장
+@app.route('/manage', methods=['GET', 'POST'])
+def manage():
+    lang = session.get('lang','ko')
+    if request.method == 'POST':
+        session['selected_resources'] = request.form.getlist('resources')
+        
+        #threshold 값 저장. (임계치)
+        thresholds = {}
+        for i, resource in enumerate([
+            "CPU 평균 부하", "CPU 사용률", "사용 가능한 메모리", "전체대비 메모리 사용률",
+            "디스크 사용률", "네트워크 송수신 바이트수", "패킷 손실율", "부팅 후 경과시간", "중요 포트 오픈 여부"
+        ]):
+            warn_key = f'warning_{i}'
+            crit_key = f'critical_{i}'
+            thresholds[resource] = {
+                'warn': request.form.get(warn_key, ''),
+                'crit': request.form.get(crit_key, '')
+            }
+
+        session['thresholds'] = thresholds
+        
+        
+        flash("설정이 저장되었습니다.")
+        return redirect(url_for('dashboard'))
+    return render_template('manage.html',lang=lang)
+
 
 #사용자 정보 페이지
 @app.route('/user_info')
@@ -265,15 +308,7 @@ def report():
 
     return render_template('report.html', lang=lang)
 
-#리소스 선택 저장
-@app.route('/manage', methods=['GET', 'POST'])
-def manage():
-    lang = session.get('lang','ko')
-    if request.method == 'POST':
-        session['selected_resources'] = request.form.getlist('resources')
-        flash("설정이 저장되었습니다.")
-        return redirect(url_for('dashboard'))
-    return render_template('manage.html',lang=lang)
+
 
 #서버 실행 (포트 5000, 외부 접속 허용)
 if __name__ == '__main__':

@@ -112,15 +112,7 @@
 
 
     <div id="charts">
-        <canvas id="cpuLoadChart" width="600" height="250"></canvas>
-        <canvas id="cpuUtilChart" width="600" height="250"></canvas>
-        <canvas id="memAvailChart" width="600" height="250"></canvas>
-        <canvas id="memUtilChart" width="600" height="250"></canvas>
-        <canvas id="diskChart" width="600" height="250"></canvas>
-        <canvas id="netInOutChart" width="600" height="250"></canvas>
-        <canvas id="packetLossChart" width="600" height="250"></canvas>
-        <canvas id="uptimeChart" width="600" height="250"></canvas>
-        <canvas id="portChart" width="600" height="250"></canvas>
+        
     </div>
 
     <h3 class="alert-log-title">{{ _('Recent Alert Logs') }}</h3>
@@ -145,33 +137,54 @@
                     return;
                 }
 
-                const configs = [
-                    { id: 'cpuLoadChart', label: '{{ _("CPU Load") }}', key: 'cpu_load', color: 'red' },
-                    { id: 'cpuUtilChart', label: '{{ _("CPU Usage") }}', key: 'cpu_util', color: 'orange' },
-                    { id: 'memAvailChart', label: '{{ _("Available Memory") }}', key: 'mem_avail', color: 'blue' },
-                    { id: 'memUtilChart', label: '{{ _("Memory Utilization") }}', key: 'mem_util', color: 'purple' },
-                    { id: 'diskChart', label: '{{ _("Disk Usage") }}', key: 'disk', color: 'brown' },
-                    { id: 'netInOutChart', label: '{{ _("Network In/Out") }}', key: 'network', color: 'teal' },
-                    { id: 'packetLossChart', label: '{{ _("Packet Loss") }}', key: 'loss', color: 'black' },
-                    { id: 'uptimeChart', label: '{{ _("System Uptime") }}', key: 'uptime', color: 'green' },
-                    { id: 'portChart', label: '{{ _("Service Port Status") }}', key: 'port', color: 'gray' }
-                ];
+                const labelMap = {
+                    "cpu_load": "{{ _('CPU Load') }}",
+                    "cpu_util": "{{ _('CPU Usage') }}",
+                    "mem_avail": "{{ _('Available Memory') }}",
+                    "mem_util": "{{ _('Memory Utilization') }}",
+                    "disk": "{{ _('Disk Usage') }}",
+                    "network": "{{ _('Network In/Out') }}",
+                    "loss": "{{ _('Packet Loss') }}",
+                    "uptime": "{{ _('System Uptime') }}",
+                    "port": "{{ _('Service Port Status') }}"
+                };
 
-                configs.forEach(cfg => {
-                    const ctx = document.getElementById(cfg.id).getContext('2d');
+                const colorMap = {
+                    "cpu_load": "red",
+                    "cpu_util": "orange",
+                    "mem_avail": "blue",
+                    "mem_util": "purple",
+                    "disk": "brown",
+                    "network": "teal",
+                    "loss": "black",
+                    "uptime": "green",
+                    "port": "gray"
+                };
+
+                const chartsDiv = document.getElementById("charts");
+                chartsDiv.innerHTML = ""; // 기존 그래프 초기화
+
+                for (const key in data) {
+                    const canvas = document.createElement("canvas");
+                    canvas.width = 600;
+                    canvas.height = 250;
+                    chartsDiv.appendChild(canvas);
+
+                    const ctx = canvas.getContext('2d');
                     new Chart(ctx, {
                         type: 'line',
                         data: {
-                            labels: data[cfg.key]?.timestamps || [],
+                            labels: data[key]?.timestamps || [],
                             datasets: [{
-                                label: cfg.label,
-                                data: data[cfg.key]?.values || [],
-                                borderColor: cfg.color,
+                                label: labelMap[key] || key,
+                                data: data[key]?.values || [],
+                                borderColor: colorMap[key] || 'gray',
                                 fill: false
                             }]
                         }
                     });
-                });
+                }
+
             } catch (err) {
                 console.error("[JS ERROR]", err);
                 alert("{{ _('Error rendering graph') }}");

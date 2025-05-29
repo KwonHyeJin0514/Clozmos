@@ -127,6 +127,11 @@
 
     <h1>대시보드 관리</h1>
 
+    {% set selected = session.selected_resources or [] %}
+
+
+    {% set selected = session.selected_resources or [] %}
+    {% set saved_thresholds = session.thresholds or {} %}
     <form method="POST" action="/manage">
         {% set default_thresholds = {
             "CPU 평균 부하": {"warn": 2.0, "crit": 5.0},
@@ -140,18 +145,28 @@
             "중요 포트 오픈 여부": {"warn": 0, "crit": 0}
         } %}
         {% set resources = default_thresholds.keys() %}
+        {% set selected = session.selected_resources or [] %}
+        
 
         {% for resource in resources %}
         {% set warn = default_thresholds[resource]["warn"] %}
         {% set crit = default_thresholds[resource]["crit"] %}
         <div class="resource">
-            <label><input type="checkbox" name="resources" value="{{ resource }}"> {{ resource }}</label>
+            <label>
+                <input type="checkbox" name="resources" value="{{ resource }}"
+                     {% if resource in selected %}checked{% endif %}> 
+                {{ resource }}
+            </label>
             <div class="thresholds">
                 <label>경고 임계치:
-                    <input type="number" step="any" name="warning_{{ loop.index0 }}" placeholder="{{ warn }}">
+                    <input type="number" step="any" name="warning_{{ loop.index0 }}"
+                        value="{{ saved_thresholds[resource]['warn'] if resource in saved_thresholds else '' }}"
+                        placeholder="{{ warn }}">
                 </label>
                 <label>위험 임계치:
-                    <input type="number" step="any" name="critical_{{ loop.index0 }}" placeholder="{{ crit }}">
+                    <input type="number" step="any" name="critical_{{ loop.index0 }}"
+                        value="{{ saved_thresholds[resource]['crit'] if resource in saved_thresholds else '' }}"
+                        placeholder="{{ crit }}">
                 </label>
             </div>
         </div>
