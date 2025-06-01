@@ -51,7 +51,7 @@
         {% endwith %}
         <form method="POST">
             <textarea name="message" placeholder="의견 내용을 입력하세요..." required></textarea>
-            <input type="submit" value="전송">
+            <input type="submit" value="{{ _('send') }}">
         </form>
         <div style="text-align: center;">
             <a href="/dashboard">{{_('Back to Dashboard')}}</a>

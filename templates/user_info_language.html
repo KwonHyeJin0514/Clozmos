@@ -41,7 +41,7 @@
             <option value="en" {% if lang == 'en' %}selected{% endif %}>{{ translations[lang]['english'] }}</option>
 
         </select><br>
-        <input type="submit" value="저장">
+        <input type="submit" value={{ _('save') }}>
     </form>
     <a href="/user_info">{{_('Back to Info')}}</a>
 </div>

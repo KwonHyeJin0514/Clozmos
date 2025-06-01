@@ -125,7 +125,7 @@
         };
     </script>
 
-    <h1>대시보드 관리</h1>
+    <h1>{{ _('Manage Dashboard') }}</h1>
 
     {% set selected = session.selected_resources or [] %}
 
@@ -158,12 +158,12 @@
                 {{ resource }}
             </label>
             <div class="thresholds">
-                <label>경고 임계치:
+                <label>{{ _('warningline') }}:
                     <input type="number" step="any" name="warning_{{ loop.index0 }}"
                         value="{{ saved_thresholds[resource]['warn'] if resource in saved_thresholds else '' }}"
                         placeholder="{{ warn }}">
                 </label>
-                <label>위험 임계치:
+                <label>{{ _('criticalline') }}:
                     <input type="number" step="any" name="critical_{{ loop.index0 }}"
                         value="{{ saved_thresholds[resource]['crit'] if resource in saved_thresholds else '' }}"
                         placeholder="{{ crit }}">
@@ -172,7 +172,7 @@
         </div>
         {% endfor %}
 
-        <input type="submit" value="저장">
+        <input type="submit" value={{ _('save') }}>
     </form>
 
 </body>

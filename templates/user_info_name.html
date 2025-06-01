@@ -2,7 +2,7 @@
 <html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
-    <title>{{_('Change Name')}}</title>
+    <title>{{_('Eidt Nickname')}}</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -126,11 +126,11 @@
     </script>
 
     <div class="container">
-        <h2>{{_('Change Name')}}</h2>
+        <h2>{{_('Edit Nickname')}}</h2>
         <form method="POST">
             <label for="alias">새 이름:</label>
             <input type="text" name="alias" id="alias" required>
-            <input type="submit" value="변경">
+            <input type="submit" value={{ _('save') }}>
         </form>
         <a href="/user_info">{{_('Back to Info')}}</a>
     </div>

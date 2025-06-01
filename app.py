@@ -12,6 +12,7 @@ from email_sender import send_email_with_attachment
 #다국어 처리리
 from translations import translations  # 추가
 import time
+import os
 from flask import g
 
 
@@ -65,6 +66,10 @@ def login():
         session['username'] = username  #로그인 이름
         session['auth_token'] = token   #zabbix api 인증 토큰
         session['is_admin'] = (username.lower() == 'admin')     #관리자 확인
+        
+        info = get_user_info(token)
+        if not info.get('name'):
+            update_user_field(token, 'name', username)
         return redirect(url_for('dashboard'))
     except:
         #로그인이 실패하면 다시 시도하게 함.
@@ -87,7 +92,6 @@ def dashboard():
     #기본 정보 불러오기
     token = session['auth_token']   #api 호출에 사용할 인증 토큰
     is_admin = session.get('is_admin', False) #관리자의 여부
-    username = session['username']  #로그인한 사용자의 이름
 
     #로그인한게 관리자라면 호스트 선택 가능
     if is_admin:
@@ -96,11 +100,17 @@ def dashboard():
         selected_host = request.args.get('host') or hosts[0]['host']
     #로그인한게 일반 사용자라면
     else:
-        selected_host = username
-
+        selected_host = get_user_host(token, session['username'])
+        
+    #name 필드 가져오기 (없으면 username 사용)
+    info = get_user_info(token)
+    display_name = info.get('name') or session['username']
+    
+    
+    
     #대시보드의 템플릿을 브라우저에 보여줌. 
     return render_template('dashboard.html',
-                           username=username,
+                           username=display_name,
                            is_admin=is_admin,
                            selected_host=selected_host,
                            hosts=get_all_hosts(token) if is_admin else [],
@@ -203,15 +213,18 @@ def user_info():
     token = session['auth_token']
     info = get_user_info(token)
     lang = session.get('lang','ko')
-    return render_template('user_info.html', user=info,lang=lang)
+    return render_template('user_info.html'
+                           , email = info.get('email')
+                           , username=info.get('name') or info.get('alias')
+                           ,lang=lang)
 
 #사용자 닉네임 수정
 @app.route('/user_info_name', methods=['GET', 'POST'])
 def user_info_name():
     token = session['auth_token']
-    if request.method == 'POST':
-        update_user_field(token, 'alias', request.form['alias'])
-        return redirect(url_for('user_info'))
+    if request.method == 'POST': #폼 제출 시 post 요청이 들어오면 실행행
+        update_user_field(token, 'name', request.form['alias'])  #from = 새 닉네임,  field 함수는 실제 zabbix 서버에 반영하는 역할할
+        return redirect(url_for('user_info'))  #변경이 완료되면 사용자 정보 페이지로 리다이렉트함.
     lang = session.get('lang','ko')
     return render_template('user_info_name.html',lang=lang)
 
@@ -299,7 +312,25 @@ def report():
         try:
             selected_resources = session.get('selected_resources')
             pdf_path = generate_pdf_report(token, username, start, end, selected_resources)
-            send_email_with_attachment(email, pdf_path)
+            
+            additional_files = ["static/help_guide.pdf", "static/notice.txt"]
+            attachments = [pdf_path] + [f for f in additional_files if os.path.exists(f)]
+            
+            send_email_with_attachment(
+        to_email=email,
+        file_paths=attachments,
+        subject="📊 Zabbix 모니터링 보고서",
+        body=f"""{username}님,
+
+요청하신 리소스 사용률 보고서를 첨부해드립니다.
+
+📆 기간: {start} ~ {end}
+📎 첨부: PDF 보고서 및 안내자료
+
+감사합니다.
+"""
+    )
+            
             flash("PDF 보고서를 이메일로 전송했습니다.")
         except Exception as e:
             flash(f"오류 발생: {str(e)}")

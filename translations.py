@@ -11,7 +11,7 @@ translations = {
         'korean': '한국어',
         'english': '영어',
 
-        "Nickname": "닉네임 수정",
+        "Edit Nickname": "닉네임 수정",
         "Edit Email": "이메일 수정",
         "Change Password": "비밀번호 변경",
         "Alert Settings": "알림 수신 설정",
@@ -49,7 +49,22 @@ translations = {
         "Choose Language :":"언어 선택 :",
         "Current Password :":"현재 비밀번호 :",
         "New Password :":"새 비밀번호 :",
-        "Check New Password :":"새 비밀번호 확인 :"
+        "Check New Password :":"새 비밀번호 확인 :",
+        
+        "Nickname" : "닉네임",
+        "Email" : "이메일",
+        "save" : "저장",
+        "send" : "전송",
+        "warningline" : "경고 임계치",
+        "criticalline" : "위험 임계치",
+        "select period": "기간 선택",
+        "last 1 hour" : "지난 1시간",
+        "last 24 hour" : "지난 24시간",
+        "customization" : "사용자 지정",
+        "incoming email" : "수신 이메일",
+        "preview" : "미리보기",
+        "inquiry" : "조회",
+        "check and delete" : "확인하고 탈퇴"
     },
     "en": {
         "Dashboard": "Dashboard",
@@ -63,7 +78,7 @@ translations = {
         'korean': 'Korean',
         'english': 'English',
 
-        "Nickname": "Edit Nickname",
+        "Edit Nickname": "Edit Nickname",
         "Edit Email": "Edit Email",
         "Change Password": "Change Password",
         "Alert Settings": "Alert Settings",
@@ -102,5 +117,21 @@ translations = {
         "Current Password :":"Current Password :",
         "New Password :":"New Password :",
         "Check New Password :":"Check New Password :",
+        
+        
+        "Nickname" : "Nickname",
+        "Email" : "Email",
+        "save" : "Save",
+        "send" : "Send",
+        "warningline" : "Warning Line",
+        "criticalline" : "Critical Line",
+        "select period": "Select Period",
+        "last 1 hour" : "Last 1 hour",
+        "last 24 hour" : "Last 24 hour",
+        "customization" : "Customization",
+        "incoming email" : "Incoming Email",
+        "preview" : "Preview",
+        "inquiry" : "Inquiry",
+        "check and delete" : "Check and Delete"
     }
 }

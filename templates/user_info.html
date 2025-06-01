@@ -117,15 +117,15 @@
     <div class="container">
         <h2>{{_('User Info')}}</h2>
         <div class="field">
-            <label>ID</label>
+            <label>{{ _('Nickname') }}</label>
             <span>{{ username }}</span>
         </div>
         <div class="field">
-            <label>이메일</label>
+            <label>{{ _('email') }}</label>
             <span>{{ email }}</span>
         </div>
         <div class="btn-group">
-            <a href="/user_info_name"> {{_('Nickname')}}</a>
+            <a href="/user_info_name"> {{_('Edit Nickname')}}</a>
             <a href="/user_info_email"> {{_('Edit Email')}}</a>
         </div>
         <div class="btn-group" style="margin-top: 10px;">
