@@ -2,7 +2,7 @@
 <html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="10">
+    <meta http-equiv="refresh" content="30">
     <title>{{ _('Dashboard') }}</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -167,8 +167,8 @@
 
                 for (const key in data) {
                     const canvas = document.createElement("canvas");
-                    canvas.width = 230;
-                    canvas.height = 100;
+                    canvas.width = 30;
+                    canvas.height = 10;
                     chartsDiv.appendChild(canvas);
 
                     const ctx = canvas.getContext('2d');
