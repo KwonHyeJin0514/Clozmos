@@ -165,7 +165,7 @@ def api_data():
                 "system.cpu.util"
             ],
             "사용 가능한 메모리": [
-                "vm.memory.size[used]"
+                "vm.memory.size[available]"
             ],
             "전체대비 메모리 사용률": [
                 "vm.memory.util"

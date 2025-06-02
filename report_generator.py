@@ -30,7 +30,7 @@ def generate_pdf_report(token, username, start, end, selected_resources=None):
     resource_items = {
         "CPU 평균 부하": ['perf_counter_en["\\Processor Information(_total)\\% User Time"]','perf_counter_en["\\Processor Information(_total)\\% Privileged Time"]'],  # Linux only
         "CPU 사용률": ["system.cpu.util"],
-        "사용 가능한 메모리": ["vm.memory.size[used]"],
+        "사용 가능한 메모리": ["vm.memory.size[uavailable]"],
         "전체대비 메모리 사용률": ["vm.memory.util"],
         "디스크 사용률": [
             'perf_counter_en["\Paging file(_Total)\% Usage"]'        # Windows
