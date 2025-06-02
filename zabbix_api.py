@@ -70,7 +70,7 @@ def create_zabbix_user(admin_token, username, password, email):
     return _post({
         "jsonrpc": "2.0", "method": "user.create",
         "params": {
-            "alias": username,
+            "username": username,
             "passwd": password,
             "name": username,
             "surname": "-",
@@ -116,7 +116,7 @@ def update_user_field(token, field, value):
 def validate_user_password(token, current_password):
     user = get_user_info(token)
     try:
-        temp_token = get_auth_token(user["alias"], current_password)
+        temp_token = get_auth_token(user["username"], current_password)
         return True
     except:
         return False

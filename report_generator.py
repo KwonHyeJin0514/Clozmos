@@ -18,7 +18,7 @@ def generate_pdf_report(token, username, start, end, selected_resources=None):
 
     # 사용자 정보
     user = get_user_info(token)
-    pdf.cell(200, 10, txt=f"사용자: {user['alias']} ({user['name']})", ln=True)
+    pdf.cell(200, 10, txt=f"사용자: {username} ({user['name']})", ln=True)
     pdf.cell(200, 10, txt=f"이메일: {user['email']}", ln=True)
     pdf.cell(200, 10, txt=f"언어: {user.get('lang', 'ko')}", ln=True)
     pdf.ln(5)
@@ -28,15 +28,27 @@ def generate_pdf_report(token, username, start, end, selected_resources=None):
 
     # 리소스 키 설정 (manage.html 기준)
     resource_items = {
-        "CPU 평균 부하": ["system.cpu.load[percpu,avg1]"],
+        "CPU 평균 부하": ["system.cpu.load[percpu,avg1]"],  # Linux only
         "CPU 사용률": ["system.cpu.util[,user]", "system.cpu.util"],
         "사용 가능한 메모리": ["vm.memory.size[available]"],
         "전체대비 메모리 사용률": ["vm.memory.util"],
-        "디스크 사용률": ["vfs.fs.size[/,pused]", "vfs.fs.size[C:,pused]"],
-        "네트워크 송수신 바이트수": ["net.if.in[eth0]", "net.if.out[eth0]"],
-        "패킷 손실율": ["net.if.loss[eth0]"],
+        "디스크 사용률": [
+            "vfs.fs.size[/,pused]",        # Linux
+            "vfs.fs.size[C:,pused]"        # Windows
+        ],
+        "네트워크 송수신 바이트수": [
+            "net.if.in[eth0]", "net.if.out[eth0]",              # Linux
+            "net.if.in[Ethernet]", "net.if.out[Ethernet]"       # Windows
+        ],
+        "패킷 손실율": [
+            "net.if.loss[eth0]",
+            "net.if.loss[Ethernet]"
+        ],
         "부팅 후 경과시간": ["system.uptime"],
-        "중요 포트 오픈 여부": ["net.tcp.listen[22]"]
+        "중요 포트 오픈 여부": [
+            "net.tcp.listen[22]",       # Linux (SSH)
+            "net.tcp.listen[3389]"      # Windows (RDP)
+        ]
     }
 
     host_id = get_user_host(token, username, return_id=True)

@@ -140,8 +140,9 @@ def api_data():
         host_id = get_user_host(token, host, return_id=True)
 
         session_resources = session.get('selected_resources') or []
+        print("[선택된 리소스]", session_resources)
 
-        # 표시 이름 → 내부 키 매핑
+        # 시각화 키 이름 매핑
         metric_key_map = {
             "CPU 평균 부하": "cpu_load",
             "CPU 사용률": "cpu_util",
@@ -154,35 +155,65 @@ def api_data():
             "중요 포트 오픈 여부": "port"
         }
 
+        # 운영체제별 item key 후보들
         item_candidates = {
-            "CPU 평균 부하": ["system.cpu.load[percpu,avg1]"],
-            "CPU 사용률": ["system.cpu.util[,user]", "system.cpu.util"],
-            "사용 가능한 메모리": ["vm.memory.size[available]"],
-            "전체대비 메모리 사용률": ["vm.memory.util"],
-            "디스크 사용률": ["vfs.fs.size[/,pused]", "vfs.fs.size[C:,pused]"],
-            "네트워크 송수신 바이트수": ["net.if.in[eth0]", "net.if.out[eth0]", "net.if.in[Ethernet]", "net.if.out[Ethernet]"],
-            "패킷 손실율": ["net.if.loss[eth0]", "net.if.loss[Ethernet]"],
-            "부팅 후 경과시간": ["system.uptime"],
-            "중요 포트 오픈 여부": ["net.tcp.listen[22]", "net.tcp.listen[3389]"]
+            "CPU 평균 부하": [
+                "system.cpu.load[percpu,avg1]"  # Linux only
+            ],
+            "CPU 사용률": [
+                "system.cpu.util[,user]",
+                "system.cpu.util"
+            ],
+            "사용 가능한 메모리": [
+                "vm.memory.size[available]"
+            ],
+            "전체대비 메모리 사용률": [
+                "vm.memory.util"
+            ],
+            "디스크 사용률": [
+                "vfs.fs.size[/,pused]",        # Linux
+                "vfs.fs.size[C:,pused]"        # Windows
+            ],
+            "네트워크 송수신 바이트수": [
+                "net.if.in[eth0]", "net.if.out[eth0]",              # Linux
+                "net.if.in[Ethernet]", "net.if.out[Ethernet]"       # Windows
+            ],
+            "패킷 손실율": [
+                "net.if.loss[eth0]",
+                "net.if.loss[Ethernet]"
+            ],
+            "부팅 후 경과시간": [
+                "system.uptime"
+            ],
+            "중요 포트 오픈 여부": [
+                "net.tcp.listen[22]",          # Linux (SSH)
+                "net.tcp.listen[3389]"         # Windows (RDP)
+            ]
         }
 
         result = {}
 
         for metric, keys in item_candidates.items():
             if session_resources and metric not in session_resources:
+                print(f"[건너뜀] {metric}")
                 continue
 
             for key in keys:
                 try:
                     item_id = get_item_id(token, host_id, key)
                     data = get_latest_data(token, item_id)
-                    key_name = metric_key_map[metric]
+                    
+                    key_name = metric_key_map.get(metric)
+                    if not key_name:
+                        continue
+
                     result[key_name] = {
                         "timestamps": [time.strftime('%H:%M:%S', time.localtime(int(d['clock']))) for d in data],
                         "values": [float(d['value']) for d in data]
                     }
                     break
-                except:
+                except Exception as e:
+                    print(f"[수집 실패] {metric} - {key}: {e}")
                     continue
 
         return jsonify(result)
@@ -190,7 +221,7 @@ def api_data():
     except Exception as e:
         print("[API ERROR]", str(e))
         return jsonify({"error": str(e)}), 500
-    
+
 
 #리소스 선택 저장
 @app.route('/manage', methods=['GET', 'POST'])
@@ -199,17 +230,35 @@ def manage():
     if request.method == 'POST':
         session['selected_resources'] = request.form.getlist('resources')
         
-        #threshold 값 저장. (임계치)
+        # threshold 값 저장 (입력 없으면 기본값 적용)
+        default_thresholds = {
+            "CPU 평균 부하": {"warn": 2.0, "crit": 5.0},
+            "CPU 사용률": {"warn": 80, "crit": 95},
+            "사용 가능한 메모리": {"warn": 500, "crit": 100},
+            "전체대비 메모리 사용률": {"warn": 85, "crit": 95},
+            "디스크 사용률": {"warn": 80, "crit": 95},
+            "네트워크 송수신 바이트수": {"warn": 10000, "crit": 20000},
+            "패킷 손실율": {"warn": 10, "crit": 30},
+            "부팅 후 경과시간": {"warn": 86400, "crit": 172800},
+            "중요 포트 오픈 여부": {"warn": 0, "crit": 0}
+        }
+
         thresholds = {}
-        for i, resource in enumerate([
-            "CPU 평균 부하", "CPU 사용률", "사용 가능한 메모리", "전체대비 메모리 사용률",
-            "디스크 사용률", "네트워크 송수신 바이트수", "패킷 손실율", "부팅 후 경과시간", "중요 포트 오픈 여부"
-        ]):
+        for i, resource in enumerate(default_thresholds.keys()):
+        
             warn_key = f'warning_{i}'
             crit_key = f'critical_{i}'
+            
+            warn_input= request.form.get(warn_key)
+            crit_input= request.form.get(crit_key)
+                
+            default_warn = default_thresholds[resource]['warn']
+            default_crit = default_thresholds[resource]['crit']
+
             thresholds[resource] = {
-                'warn': request.form.get(warn_key, ''),
-                'crit': request.form.get(crit_key, '')
+                'warn': float(warn_input) if warn_input else default_warn,
+                'crit': float(crit_input) if crit_input else default_crit
+
             }
 
         session['thresholds'] = thresholds
@@ -228,7 +277,7 @@ def user_info():
     lang = session.get('lang','ko')
     return render_template('user_info.html'
                            , email = info.get('email')
-                           , username=info.get('name') or info.get('alias')
+                           , username=info.get('name') or info.get('username')
                            ,lang=lang)
 
 #사용자 닉네임 수정
@@ -236,7 +285,7 @@ def user_info():
 def user_info_name():
     token = session['auth_token']
     if request.method == 'POST': #폼 제출 시 post 요청이 들어오면 실행행
-        update_user_field(token, 'name', request.form['alias'])  #from = 새 닉네임,  field 함수는 실제 zabbix 서버에 반영하는 역할할
+        update_user_field(token, 'name', request.form['username'])  #from = 새 닉네임,  field 함수는 실제 zabbix 서버에 반영하는 역할할
         return redirect(url_for('user_info'))  #변경이 완료되면 사용자 정보 페이지로 리다이렉트함.
     lang = session.get('lang','ko')
     return render_template('user_info_name.html',lang=lang)
