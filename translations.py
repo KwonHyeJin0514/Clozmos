@@ -135,3 +135,6 @@ translations = {
         "check and delete" : "Check and Delete"
     }
 }
+
+translations['ko_KR'] = translations['ko']
+translations['en_US'] = translations['en']
