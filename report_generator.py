@@ -28,7 +28,7 @@ def generate_pdf_report(token, username, start, end, selected_resources=None):
 
     # 리소스 키 설정 (manage.html 기준)
     resource_items = {
-        "CPU 평균 부하": ["system.cpu.load[percpu,avg1]"],  # Linux only
+        "CPU 평균 부하": ["system.cpu.load[<cpu>,<mode>]"],  # Linux only
         "CPU 사용률": ["system.cpu.util[,user]", "system.cpu.util"],
         "사용 가능한 메모리": ["vm.memory.size[available]"],
         "전체대비 메모리 사용률": ["vm.memory.util"],
