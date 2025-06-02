@@ -43,6 +43,7 @@
         <select name="language" id="language">
             <option value="ko" {% if lang == 'ko' %}selected{% endif %}>{{ translations['ko']['korean'] }}</option>
             <option value="en" {% if lang == 'en' %}selected{% endif %}>{{ translations['en']['english'] }}</option>
+            
 
         </select><br>
         <input type="submit" value={{ _('save') }}>
