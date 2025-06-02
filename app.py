@@ -158,7 +158,8 @@ def api_data():
         # 운영체제별 item key 후보들
         item_candidates = {
             "CPU 평균 부하": [
-                "system.cpu.load[<cpu>,<mode>]"  # Linux only
+                'perf_counter_en["\\Processor Information(_total)\\% User Time"]',
+                'perf_counter_en["\\Processor Information(_total)\\% Privileged Time"]'
             ],
             "CPU 사용률": [
                 "system.cpu.util"
