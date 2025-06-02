@@ -60,6 +60,7 @@ def login():
     try:
         #사용자가 입력한 정보로 zabbix api에 로그인 요청 -> token을 받음
         token = get_auth_token(username, password)  # Zabbix 인증 토큰 획득
+        print("로그인성공 토큰:",token)
         user = get_user_info(token)         #사용자 정보 가져오기
         session['lang'] = user.get('lang', 'ko')  #계정에 저장된 언어를 lang에 저장
         host_names = [h['host'] for h in get_all_hosts(token)] #호스트 목록 확인
@@ -74,8 +75,9 @@ def login():
         if not info.get('name'):
             update_user_field(token, 'name', username)
         return redirect(url_for('dashboard'))
-    except:
+    except Exception as e:
         #로그인이 실패하면 다시 시도하게 함.
+        print("로그인 실패",str(e))
         flash("로그인 실패. 호스트명 또는 비밀번호를 확인하세요.")
         return redirect(url_for('index'))
 
@@ -103,7 +105,12 @@ def dashboard():
         selected_host = request.args.get('host') or hosts[0]['host']
     #로그인한게 일반 사용자라면
     else:
-        selected_host = get_user_host(token, session['username'])
+        try:
+            selected_host = get_user_host(token, session['username'])
+        except Exception:
+            flash("호스트를 찾을 수 없습니다")
+            return redirect(url_for('logout'))
+            
         
     #name 필드 가져오기 (없으면 username 사용)
     info = get_user_info(token)
