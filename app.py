@@ -40,9 +40,11 @@ def inject_translations():
 @app.before_request
 def set_lang():
     token = session.get('auth_token')
+    
     if token:
         info = get_user_info(token)
-        g.lang = info.get('lang', 'ko')
+        
+        lang = info.get('lang', 'ko')
         g.lang = lang.split('_')[0]
     else:
         g.lang = 'ko'
