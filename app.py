@@ -158,21 +158,19 @@ def api_data():
         # 운영체제별 item key 후보들
         item_candidates = {
             "CPU 평균 부하": [
-                "system.cpu.load[percpu,avg1]"  # Linux only
+                "system.cpu.load[<cpu>,<mode>]"  # Linux only
             ],
             "CPU 사용률": [
-                "system.cpu.util[,user]",
                 "system.cpu.util"
             ],
             "사용 가능한 메모리": [
-                "vm.memory.size[available]"
+                "vm.memory.size[<mode>]"
             ],
             "전체대비 메모리 사용률": [
                 "vm.memory.util"
             ],
             "디스크 사용률": [
-                "vfs.fs.size[/,pused]",        # Linux
-                "vfs.fs.size[C:,pused]"        # Windows
+                'perf_counter_en["\Paging file(_Total)\% Usage"]'        # Windows
             ],
             "네트워크 송수신 바이트수": [
                 "net.if.in[eth0]", "net.if.out[eth0]",              # Linux
