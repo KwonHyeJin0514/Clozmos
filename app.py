@@ -158,13 +158,13 @@ def api_data():
         # 운영체제별 item key 후보들
         item_candidates = {
             "CPU 평균 부하": [
-                "system.cpu.load[percpu,avg1]"  # Linux only
+                "system.cpu.load[<cpu>,<mode>]"  # Linux only
             ],
             "CPU 사용률": [
                 "system.cpu.util"
             ],
             "사용 가능한 메모리": [
-                "vm.memory.size[<abailable>]"
+                "vm.memory.size[<mode>]"
             ],
             "전체대비 메모리 사용률": [
                 "vm.memory.util"
