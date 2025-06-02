@@ -43,6 +43,7 @@ def set_lang():
     if token:
         info = get_user_info(token)
         g.lang = info.get('lang', 'ko')
+        g.lang = lang.split('_')[0]
     else:
         g.lang = 'ko'
 
