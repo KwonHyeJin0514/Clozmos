@@ -252,6 +252,7 @@ def user_info_email():
 @app.route('/user_info_language', methods=['GET', 'POST'])
 def user_info_language():
     token = session['auth_token']
+    lang = session.get('lang','ko')
     if request.method == 'POST':
         new_lang = request.form['language']
         update_user_field(token, 'lang', new_lang)
