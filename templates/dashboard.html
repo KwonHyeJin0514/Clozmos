@@ -20,6 +20,21 @@
             margin-top: 20px;
             margin-bottom: 30px;
         }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        canvas {
+            width: 100% !important;
+            max-width: 350px;
+            height: auto !important;
+            margin: 20px auto;
+            display: block;
+        }
         /*왼쪽위에 햄버거 버튼*/
         #menuToggle {
             position: absolute;
@@ -112,7 +127,9 @@
     {% endif %}
 
 
-    <div id="charts">
+    <div class="container">
+        <div id="charts"></div>
+    </div>
         
     </div>
 
