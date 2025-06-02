@@ -258,7 +258,7 @@ def user_info_language():
         update_user_field(token, 'lang', new_lang)
         session['lang'] = new_lang  # 세션에 반영
         return redirect(url_for('user_info'))
-    return render_template('user_info_language.html',lang=lang)
+    return render_template('user_info_language.html',lang=lang, translations=translations)
 
 #알림 수신 이메일 변경
 @app.route('/user_info_alert', methods=['GET', 'POST'])
