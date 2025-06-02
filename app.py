@@ -252,13 +252,20 @@ def user_info_email():
 @app.route('/user_info_language', methods=['GET', 'POST'])
 def user_info_language():
     token = session['auth_token']
-    lang = session.get('lang','ko')
+    user = get_user_info(token)
+    lang = user.get('lang','ko')
     if request.method == 'POST':
         new_lang = request.form['language']
         update_user_field(token, 'lang', new_lang)
         session['lang'] = new_lang  # 세션에 반영
         return redirect(url_for('user_info'))
-    return render_template('user_info_language.html',lang=lang, translations=translations)
+    return render_template('user_info_language.html',lang=lang)
+
+#tranlations를 전역으로
+@app.context_processsor
+def inject_translations():
+    from translations import translations
+    return dict(translations=translations)
 
 #알림 수신 이메일 변경
 @app.route('/user_info_alert', methods=['GET', 'POST'])
