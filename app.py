@@ -262,7 +262,7 @@ def user_info_language():
     return render_template('user_info_language.html',lang=lang)
 
 #tranlations를 전역으로
-@app.context_processsor
+@app.context_processor
 def inject_translations():
     from translations import translations
     return dict(translations=translations)
