@@ -28,18 +28,18 @@ def generate_pdf_report(token, username, start, end, selected_resources=None):
 
     # 리소스 키 설정 (manage.html 기준)
     resource_items = {
-        "CPU 평균 부하": ["system.cpu.load[percpu,avg1]"],  # Linux only
+        "CPU 평균 부하": ["system.cpu.load[<cpu>,<mode>]"],  # Linux only
         "CPU 사용률": ["system.cpu.util"],
-        "사용 가능한 메모리": ["vm.memory.size[<abailable>]"],
+        "사용 가능한 메모리": ["vm.memory.size[<mode>]"],
         "전체대비 메모리 사용률": ["vm.memory.util"],
         "디스크 사용률": [
             'perf_counter_en["\Paging file(_Total)\% Usage"]'        # Windows
         ],
         "네트워크 송수신 바이트수": [            # Linux
-            'net.if.in[eth0]', 'net.if.out[Ethernet]'      # Windows
+            'net.if.in[eth0]', 'net.if.out[eth0]'      # Windows
         ],
         "패킷 손실율": [
-            'net.if.out[eth0]'
+            'net.if.out["{3B5E5271-E35B-4D78-98CC-AE486558DAD1}",dropped]'
         ],
         "부팅 후 경과시간": ["system.uptime"],
         "중요 포트 오픈 여부": [
