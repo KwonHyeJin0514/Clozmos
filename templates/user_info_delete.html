@@ -21,6 +21,10 @@
 <body>
     <div id="menuToggle">☰</div>
     <div id="sideMenu">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="로고" style="height: 60px; margin-top: -20px;">
+        </div>
+        
         <a href="/dashboard">{{ _('Dashboard') }}</a>
         <a href="/user_info" style="background-color:rgba(128,167,250,0.82);" >{{ _('User Info') }}</a>
         <a href="/report">{{ _('Report') }}</a>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>설치 스크립트 생성 완료</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            padding: 50px;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            max-width: 400px;
+            margin: auto;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        button {
+            padding: 12px 20px;
+            font-size: 16px;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #2ecc71;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>설치 스크립트 생성 완료</h2>
+        <p>{{ username }} 님을 위한 설치 스크립트가 준비되었습니다.</p>
+        <a href="/download/agent/{{ username }}">
+            <button>설치 파일 다운로드</button>
+        </a>
+    </div>
+</body>
+</html>

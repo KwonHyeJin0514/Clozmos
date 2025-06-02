@@ -66,6 +66,27 @@ def get_user_info(token):
         "id": 5
     })["result"][0]
 
+def create_zabbix_user(admin_token, username, password, email):
+    return _post({
+        "jsonrpc": "2.0", "method": "user.create",
+        "params": {
+            "alias": username,
+            "passwd": password,
+            "name": username,
+            "surname": "-",
+            "groups": [{"usrgrpid": "7"}],
+            "user_medias": [{
+                "mediatypeid": "1",
+                "sendto": email,
+                "active": 0,
+                "severity": 63,
+                "period": "1-7,00:00-24:00"
+            }]
+        },
+        "auth": admin_token, "id": 12
+    })
+
+
 def update_user_field(token, field, value):
     user = get_user_info(token)
     userid = user["userid"]
@@ -109,7 +130,7 @@ def delete_user_account(token):
         "auth": token, "id": 7
     })
 
-def get_alert_logs(token, host_name):
+def get_alert_logs(token, host_name,max_logs=7):
     host_id = get_user_host(token, host_name, return_id=True)
     triggers = _post({
         "jsonrpc": "2.0",

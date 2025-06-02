@@ -78,10 +78,19 @@
         }
 
     </style>
+    <div style="position: absolute; top: 10px; left: 20px;">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="로고" style="height: 50px;">
+    </div>
+
 </head>
 <body>
 
     <div class="header">{{ _('Dashboard') }}</div>
+    <div style="text-align: center; margin-top: 40px;">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="CLOZMOS 로고" style="height: 100px;">
+        <h2 style="margin-top: 10px; color: #2c3e50;">CLOZMOS 모니터링 시스템</h2>
+    </div>
+
 
     <div class="login-container">
         <form class="login-box" method="POST" action="/login">

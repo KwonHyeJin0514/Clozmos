@@ -1,8 +1,8 @@
-from flask import jsonify, Flask, render_template, request, redirect, url_for, session, flash
+from flask import jsonify, Flask, render_template, request, redirect, url_for, session, flash, send_file
 from zabbix_api import (
     get_auth_token, get_all_hosts, get_user_host, get_item_id, get_latest_data,
     get_user_info, update_user_field, validate_user_password, delete_user_account,
-    get_alert_logs
+    get_alert_logs, create_zabbix_user
 )
 
 #자빅스와 연동하기 위해 만든 api 함수들
@@ -21,9 +21,12 @@ app = Flask(__name__)
 #session 보안을 위하여 비밀키 설정
 app.secret_key = 'secret_key'
 
+ZABBIX_SERVER_IP = "172.29.109.42"
+ZABBIX_ADMIN_ID = "Admin"
+ZABBIX_ADMIN_PW = "zabbix"
+
 
 #다국어 지원 코드
-
 #번역키를 호출함
 @app.context_processor
 def inject_translations():
@@ -340,6 +343,59 @@ def report():
     return render_template('report.html', lang=lang)
 
 
+#회원가입 페이지 + 설치파일 생성
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        email = request.form['email']
+        os_type = request.form['os_type']
+
+        try:
+            admin_token = get_auth_token(ZABBIX_ADMIN_ID, ZABBIX_ADMIN_PW)
+            create_zabbix_user(admin_token, username, password, email)
+        except Exception as e:
+            flash(f"Zabbix 사용자 생성 실패: {str(e)}")
+            return redirect(url_for('register'))
+
+        timestamp = int(time.time())
+        if os_type == 'linux':
+            path = f"/tmp/install_{username}_{timestamp}.sh"
+            with open(path, 'w') as f:
+                f.write(f"""#!/bin/bash
+sudo apt update
+sudo apt install zabbix-agent -y
+sudo sed -i 's/^Server=.*/Server={ZABBIX_SERVER_IP}/' /etc/zabbix/zabbix_agentd.conf
+sudo sed -i 's/^Hostname=.*/Hostname={username}/' /etc/zabbix/zabbix_agentd.conf
+sudo sed -i 's/^# HostMetadata=.*/HostMetadata=zabbix_agent/' /etc/zabbix/zabbix_agentd.conf
+sudo systemctl enable zabbix-agent
+sudo systemctl restart zabbix-agent
+""")
+            os.chmod(path, 0o755)
+        else:
+            path = f"/tmp/install_{username}_{timestamp}.bat"
+            with open(path, 'w') as f:
+                f.write(f"""@echo off
+msiexec /i https://cdn.zabbix.com/zabbix/binaries/stable/6.0/6.0.20/zabbix_agent-6.0.20-windows-amd64-openssl.msi /quiet
+timeout 10
+echo Server={ZABBIX_SERVER_IP}>> "C:\\Program Files\\Zabbix Agent\\zabbix_agentd.conf"
+echo Hostname={username}>> "C:\\Program Files\\Zabbix Agent\\zabbix_agentd.conf"
+echo HostMetadata=zabbix_agent>> "C:\\Program Files\\Zabbix Agent\\zabbix_agentd.conf"
+net start "Zabbix Agent"
+""")
+
+        flash("계정이 생성되었습니다. 설치 파일을 다운로드하세요.")
+        return render_template('register_done.html', username=username, os_type=os_type, timestamp=timestamp)
+
+    return render_template('register.html')
+
+#설치 파일 다운로드
+@app.route('/download/agent/<os_type>/<username>/<timestamp>')
+def download_agent_script(os_type, username, timestamp):
+    ext = 'sh' if os_type == 'linux' else 'bat'
+    path = f"/tmp/install_{username}_{timestamp}.{ext}"
+    return send_file(path, as_attachment=True)
 
 #서버 실행 (포트 5000, 외부 접속 허용)
 if __name__ == '__main__':
