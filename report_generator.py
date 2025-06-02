@@ -36,7 +36,7 @@ def generate_pdf_report(token, username, start, end, selected_resources=None):
             'perf_counter_en["\Paging file(_Total)\% Usage"]'        # Windows
         ],
         "네트워크 송수신 바이트수": [            # Linux
-            'net.if.in[eth0]', 'net.if.out[eth0]'      # Windows
+            'net.if.in[3B5E5271-E35B-4D78-98CC-AE486558DAD1]', 'net.if.out[eth0]'      # Windows
         ],
         "패킷 손실율": [
             'net.if.out["{3B5E5271-E35B-4D78-98CC-AE486558DAD1}",dropped]'

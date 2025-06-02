@@ -174,7 +174,7 @@ def api_data():
                 'perf_counter_en["\Paging file(_Total)\% Usage"]'        # Windows
             ],
             "네트워크 송수신 바이트수": [
-                "net.if.in[eth0]", "net.if.out[eth0]",              # Linux
+                "net.if.in[3B5E5271-E35B-4D78-98CC-AE486558DAD1]", "net.if.out[eth0]",              # Linux
                 "net.if.in[Ethernet]", "net.if.out[Ethernet]"       # Windows
             ],
             "패킷 손실율": [
@@ -189,6 +189,7 @@ def api_data():
                 "net.tcp.listen[3389]"         # Windows (RDP)
             ]
         }
+        
 
         result = {}
 
