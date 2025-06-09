@@ -14,7 +14,10 @@ def generate_pdf_report(token, username, start, end, selected_resources=None):
 
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font("Arial", size=12)
+    
+    #한글 특수문자 출력이 가능하도록 나눔고딕 폰트 등록
+    pdf.add_font("NanumBold", "", "fonts/NanumGothic-Bold.ttf",uni=True)
+    pdf.set_font("NabumBold",size=12)
 
     # 사용자 정보
     user = get_user_info(token)
