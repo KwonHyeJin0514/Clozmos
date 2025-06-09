@@ -446,23 +446,23 @@ def report():
             additional_files = ["static/help_guide.pdf", "static/notice.txt"]
             attachments = [pdf_path] + [f for f in additional_files if os.path.exists(f)]
 
-            send_email_with_attachment(
-                to_email=email,
-                file_paths=attachments,
-                subject="📊 Zabbix 모니터링 보고서",
-                body=f"""{username}님,
+#             send_email_with_attachment(
+#                 to_email=email,
+#                 file_paths=attachments,
+#                 subject="📊 Zabbix 모니터링 보고서",
+#                 body=f"""{username}님,
 
-요청하신 리소스 사용률 보고서를 첨부해드립니다.
+# 요청하신 리소스 사용률 보고서를 첨부해드립니다.
 
-📆 기간: {start} ~ {end}
-📎 첨부: PDF 보고서 및 안내자료
+# 📆 기간: {start} ~ {end}
+# 📎 첨부: PDF 보고서 및 안내자료
 
-감사합니다.
-"""
-            )
-            flash("PDF 보고서를 이메일로 전송했습니다.", "success")
-        except Exception as e:
-            flash("오류 발생: " + str(e), "error")
+# 감사합니다.
+# """
+#             )
+#             flash("PDF 보고서를 이메일로 전송했습니다.", "success")
+#         except Exception as e:
+#             flash("오류 발생: " + str(e), "error")
 
         return redirect(url_for('report'))
 
