@@ -358,12 +358,14 @@ def user_info_delete():
         flash("계정이 삭제되었습니다.")
         return redirect(url_for('logout'))
     return render_template('user_info_delete.html',lang=lang)
+# 보고서 생성 및 이메일 전송
 
-from zabbix_api import get_item_id, get_latest_data, get_user_host
-
+# 보고서 생성 및 이메일 전송
 @app.route('/report', methods=['GET', 'POST'])
 def report():
+    from zabbix_api import get_item_id, get_latest_data, get_user_host
     lang = session.get('lang', 'ko')
+
     if request.method == 'POST':
         token = session.get('auth_token')
         username = session.get('username')
@@ -382,8 +384,7 @@ def report():
             try:
                 preview_lines = [f"{username}님의 보고서 (기간: {start} ~ {end})\n"]
 
-                # 리소스 키 정의 (report_generator.py와 동일)
-                item_candidates = {
+                resource_items = {
                     "CPU 평균 부하": [
                         'perf_counter_en["\\Processor Information(_total)\\% User Time"]',
                         'perf_counter_en["\\Processor Information(_total)\\% Privileged Time"]'
@@ -393,8 +394,10 @@ def report():
                     "전체대비 메모리 사용률": ["vm.memory.util"],
                     "디스크 사용률": ['perf_counter_en["\\Paging file(_Total)\\% Usage"]'],
                     "네트워크 송수신 바이트수": [
-                        "net.if.in[3B5E5271-E35B-4D78-98CC-AE486558DAD1]", "net.if.out[eth0]",
-                        "net.if.in[Ethernet]", "net.if.out[Ethernet]"
+                        "net.if.in[3B5E5271-E35B-4D78-98CC-AE486558DAD1]",
+                        "net.if.out[eth0]",
+                        "net.if.in[Ethernet]",
+                        "net.if.out[Ethernet]"
                     ],
                     "패킷 손실율": ["net.if.loss[eth0]", "net.if.loss[Ethernet]"],
                     "부팅 후 경과시간": ["system.uptime"],
@@ -403,10 +406,9 @@ def report():
 
                 host_id = get_user_host(token, username, return_id=True)
 
-                for res_name, key_list in item_candidates():
+                for res_name, key_list in resource_items.items():
                     if selected_resources and res_name not in selected_resources:
                         continue
-
                     for key in key_list:
                         try:
                             item_id = get_item_id(token, host_id, key)
@@ -414,11 +416,9 @@ def report():
                             values = [float(d['value']) for d in data]
                             if not values:
                                 continue
-
                             max_val = max(values)
                             warn_cnt = len([v for v in values if v > 80])
                             crit_cnt = len([v for v in values if v > 95])
-
                             preview_lines.append(f"▶ {res_name}")
                             preview_lines.append(f"  최대값: {max_val}")
                             preview_lines.append(f"  경고: {warn_cnt}회 / 위험: {crit_cnt}회\n")
@@ -434,6 +434,9 @@ def report():
             return render_template("report.html", preview=preview, lang=lang)
 
         try:
+            from report_generator import generate_pdf_report
+            from email_sender import send_email_with_attachment
+
             pdf_path = generate_pdf_report(token, username, start, end, selected_resources)
             additional_files = ["static/help_guide.pdf", "static/notice.txt"]
             attachments = [pdf_path] + [f for f in additional_files if os.path.exists(f)]
@@ -459,6 +462,7 @@ def report():
         return redirect(url_for('report'))
 
     return render_template('report.html', lang=lang)
+
 
 
 #회원가입 페이지 + 설치파일 생성
