@@ -438,7 +438,7 @@ def report():
                             max_val = max(values)
                             warn_cnt = len([v for v in values if v > 80])
                             crit_cnt = len([v for v in values if v > 95])
-                            preview_lines.append(f"▶ {res_name}")
+                            preview_lines.append(f"> {res_name}")
                             preview_lines.append(f"  최대값: {max_val}")
                             preview_lines.append(f"  경고: {warn_cnt}회 / 위험: {crit_cnt}회\n")
                             break
