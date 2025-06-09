@@ -17,7 +17,7 @@ def generate_pdf_report(token, username, start, end, selected_resources=None):
     
     #한글 특수문자 출력이 가능하도록 나눔고딕 폰트 등록
     pdf.add_font("NanumBold", "", "fonts/NanumGothic-Bold.ttf",uni=True)
-    pdf.set_font("NabumBold",size=12)
+    pdf.set_font("NanumBold",size=12)
 
     # 사용자 정보
     user = get_user_info(token)
@@ -76,9 +76,9 @@ def generate_pdf_report(token, username, start, end, selected_resources=None):
                 warn_cnt = len([v for v in values if v > 80])
                 crit_cnt = len([v for v in values if v > 95])
 
-                pdf.set_font("Arial", style='B', size=11)
+                pdf.set_font("NanumBold", size=11)
                 pdf.cell(200, 10, txt=f"▶ {res_name}", ln=True)
-                pdf.set_font("Arial", size=10)
+                pdf.set_font("NanumBold", size=10)
                 pdf.cell(200, 8, txt=f"  최대값: {max_val}", ln=True)
                 pdf.cell(200, 8, txt=f"  경고 수: {warn_cnt}회, 위험 수: {crit_cnt}회", ln=True)
                 img_path = f"static/{res_name.split()[0]}.png"
@@ -90,9 +90,9 @@ def generate_pdf_report(token, username, start, end, selected_resources=None):
                 continue
 
     pdf.ln(5)
-    pdf.set_font("Arial", size=12)
+    pdf.set_font("NanumBold", size=12)
     pdf.cell(200, 10, txt="최근 알림 로그:", ln=True)
-    pdf.set_font("Arial", size=10)
+    pdf.set_font("NanumBold", size=10)
     logs = get_alert_logs(token, username)
     for log in logs:
         pdf.multi_cell(200, 8, f"- [{log['time']}] {log['message']}")
