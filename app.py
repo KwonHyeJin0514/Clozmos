@@ -460,9 +460,9 @@ def report():
 # 감사합니다.
 # """
 #             )
-#             flash("PDF 보고서를 이메일로 전송했습니다.", "success")
-#         except Exception as e:
-#             flash("오류 발생: " + str(e), "error")
+            flash("PDF 보고서를 이메일로 전송했습니다.", "success")
+        except Exception as e:
+            flash("오류 발생: " + str(e), "error")
 
         return redirect(url_for('report'))
 
