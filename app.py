@@ -4,7 +4,6 @@ from zabbix_api import (
     get_user_info, update_user_field, validate_user_password, delete_user_account,
     get_alert_logs, create_zabbix_user
 )
-
 #자빅스와 연동하기 위해 만든 api 함수들
 from report_generator import generate_pdf_report
 from email_sender import send_email_with_attachment
@@ -14,7 +13,7 @@ from translations import translations  # 추가
 import time
 import os
 from flask import g
-
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
@@ -358,12 +357,11 @@ def user_info_delete():
         flash("계정이 삭제되었습니다.")
         return redirect(url_for('logout'))
     return render_template('user_info_delete.html',lang=lang)
-# 보고서 생성 및 이메일 전송
 
 # 보고서 생성 및 이메일 전송
 @app.route('/report', methods=['GET', 'POST'])
 def report():
-    from zabbix_api import get_item_id, get_latest_data, get_user_host
+    
     lang = session.get('lang', 'ko')
 
     if request.method == 'POST':
@@ -377,6 +375,13 @@ def report():
         if start == 'custom':
             start = request.form.get('start_custom')
             end = request.form.get('end_custom')
+        else :
+            now = datetime.now()
+            if start == '-1h':
+                start = (now - timedelta(hours=1)).strftime('%Y-%m-%d %H:%M')
+            elif start == '-24h':
+                start = (now - timedelta(hours=24)).strftime('%Y-%m-%d %H:%M')
+            end = now.strftime('%Y-%m-%d %H:%M')
 
         selected_resources = session.get('selected_resources')
 
