@@ -359,7 +359,8 @@ def user_info_delete():
         return redirect(url_for('logout'))
     return render_template('user_info_delete.html',lang=lang)
 
-#보고서 생성 및 이메일 전송
+from zabbix_api import get_item_id, get_latest_data, get_user_host
+
 @app.route('/report', methods=['GET', 'POST'])
 def report():
     lang = session.get('lang', 'ko')
@@ -375,22 +376,73 @@ def report():
             start = request.form.get('start_custom')
             end = request.form.get('end_custom')
 
+        selected_resources = session.get('selected_resources')
+
         if action == "preview":
-            preview = f"{username}님의 보고서 (기간: {start} ~ {end})\n리소스 그래프, 최대치, 로그 요약 포함"
-            return render_template("report.html", preview=preview ,lang=lang)
+            try:
+                preview_lines = [f"{username}님의 보고서 (기간: {start} ~ {end})\n"]
+
+                # 리소스 키 정의 (report_generator.py와 동일)
+                item_candidates = {
+                    "CPU 평균 부하": [
+                        'perf_counter_en["\\Processor Information(_total)\\% User Time"]',
+                        'perf_counter_en["\\Processor Information(_total)\\% Privileged Time"]'
+                    ],
+                    "CPU 사용률": ["system.cpu.util"],
+                    "사용 가능한 메모리": ["vm.memory.size[available]"],
+                    "전체대비 메모리 사용률": ["vm.memory.util"],
+                    "디스크 사용률": ['perf_counter_en["\\Paging file(_Total)\\% Usage"]'],
+                    "네트워크 송수신 바이트수": [
+                        "net.if.in[3B5E5271-E35B-4D78-98CC-AE486558DAD1]", "net.if.out[eth0]",
+                        "net.if.in[Ethernet]", "net.if.out[Ethernet]"
+                    ],
+                    "패킷 손실율": ["net.if.loss[eth0]", "net.if.loss[Ethernet]"],
+                    "부팅 후 경과시간": ["system.uptime"],
+                    "중요 포트 오픈 여부": ["net.tcp.listen[22]", "net.tcp.listen[3389]"]
+                }
+
+                host_id = get_user_host(token, username, return_id=True)
+
+                for res_name, key_list in resource_items.items():
+                    if selected_resources and res_name not in selected_resources:
+                        continue
+
+                    for key in key_list:
+                        try:
+                            item_id = get_item_id(token, host_id, key)
+                            data = get_latest_data(token, item_id, limit=20)
+                            values = [float(d['value']) for d in data]
+                            if not values:
+                                continue
+
+                            max_val = max(values)
+                            warn_cnt = len([v for v in values if v > 80])
+                            crit_cnt = len([v for v in values if v > 95])
+
+                            preview_lines.append(f"▶ {res_name}")
+                            preview_lines.append(f"  최대값: {max_val}")
+                            preview_lines.append(f"  경고: {warn_cnt}회 / 위험: {crit_cnt}회\n")
+                            break
+                        except:
+                            continue
+
+                preview = "\n".join(preview_lines)
+
+            except Exception as e:
+                preview = f"미리보기 중 오류 발생: {str(e)}"
+
+            return render_template("report.html", preview=preview, lang=lang)
 
         try:
-            selected_resources = session.get('selected_resources')
             pdf_path = generate_pdf_report(token, username, start, end, selected_resources)
-            
             additional_files = ["static/help_guide.pdf", "static/notice.txt"]
             attachments = [pdf_path] + [f for f in additional_files if os.path.exists(f)]
-            
+
             send_email_with_attachment(
-        to_email=email,
-        file_paths=attachments,
-        subject="📊 Zabbix 모니터링 보고서",
-        body=f"""{username}님,
+                to_email=email,
+                file_paths=attachments,
+                subject="📊 Zabbix 모니터링 보고서",
+                body=f"""{username}님,
 
 요청하신 리소스 사용률 보고서를 첨부해드립니다.
 
@@ -399,11 +451,10 @@ def report():
 
 감사합니다.
 """
-    )
-            
-            flash("PDF 보고서를 이메일로 전송했습니다.")
+            )
+            flash("PDF 보고서를 이메일로 전송했습니다.", "success")
         except Exception as e:
-            flash(f"오류 발생: {str(e)}")
+            flash("오류 발생: " + str(e), "error")
 
         return redirect(url_for('report'))
 
@@ -446,9 +497,9 @@ sudo systemctl restart zabbix-agent
                 f.write(f"""@echo off
 msiexec /i https://cdn.zabbix.com/zabbix/binaries/stable/6.0/6.0.20/zabbix_agent-6.0.20-windows-amd64-openssl.msi /quiet
 timeout 10
-echo Server={ZABBIX_SERVER_IP}>> "C:\\Program Files\\Zabbix Agent\\zabbix_agentd.conf"
-echo Hostname={username}>> "C:\\Program Files\\Zabbix Agent\\zabbix_agentd.conf"
-echo HostMetadata=zabbix_agent>> "C:\\Program Files\\Zabbix Agent\\zabbix_agentd.conf"
+powershell -Command "(Get-Content 'C:\\Program Files\\Zabbix Agent\\zabbix_agentd.conf') -replace '^Server=.*', 'Server={ZABBIX_SERVER_IP}' | Set-Content 'C:\\Program Files\\Zabbix Agent\\zabbix_agentd.conf'"
+powershell -Command "(Add-Content 'C:\\Program Files\\Zabbix Agent\\zabbix_agentd.conf' 'Hostname={username}')"
+powershell -Command "(Add-Content 'C:\\Program Files\\Zabbix Agent\\zabbix_agentd.conf' 'HostMetadata=zabbix_agent')"
 net start "Zabbix Agent"
 """)
 

@@ -157,6 +157,17 @@
     <div class="container">
         <h1>{{_('Monitoring Report')}}</h1>
 
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div style="margin-bottom: 20px;">
+                {% for message in messages %}
+                    <p style='color: {{ 'green' if category == 'success' else 'red' }}; font-weight: bold;'>{{ message }}</p>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+
         <form method="POST" onsubmit="return validateForm()">
             <div class="form-group radio-group">
                 <label>{{ _('select period') }}:</label>
@@ -164,6 +175,7 @@
                 <input type="radio" name="start" value="-24h" onclick="toggleCustomInput()"> {{ _('last 24 hours') }}
                 <input type="radio" name="start" value="custom" onclick="toggleCustomInput()"> {{ _('customization') }}
             </div>
+            {% set selected_resources = session.selected_resources or [] %}
 
             <div id="customInputs" class="form-group" style="display: none;">
                 <input type="text" id="start_custom" name="start_custom" placeholder="시작 시간 (YYYY-MM-DD HH:MM)">
