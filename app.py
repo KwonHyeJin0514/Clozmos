@@ -468,15 +468,13 @@ def report():
                 subject=" Zabbix 모니터링 보고서",
                 body=f"""{username}님,
 
-            요청하신 리소스 사용률 보고서를 첨부해드립니다.
+                요청하신 리소스 사용률 보고서를 첨부해드립니다.
 
-             기간: {start} ~ {end}
-             첨부: PDF 보고서 및 안내자료
+                기간: {start} ~ {end}
+                첨부: PDF 보고서 및 안내자료
 
-            감사합니다.
-            """
-            )
-
+                감사합니다.
+                """)
             flash("PDF 보고서를 이메일로 전송했습니다.", "success")
         except Exception as e:
             traceback.print_exc()
