@@ -14,6 +14,7 @@ import time
 import os
 from flask import g
 from datetime import datetime, timedelta
+import traceback
 
 app = Flask(__name__)
 
@@ -358,10 +359,8 @@ def user_info_delete():
         return redirect(url_for('logout'))
     return render_template('user_info_delete.html',lang=lang)
 
-# 보고서 생성 및 이메일 전송
 @app.route('/report', methods=['GET', 'POST'])
 def report():
-    
     lang = session.get('lang', 'ko')
 
     if request.method == 'POST':
@@ -369,13 +368,16 @@ def report():
         username = session.get('username')
         start = request.form.get('start')
         email = request.form.get('email')
-        end = time.strftime('%Y-%m-%d %H:%M:%S')
         action = request.form.get('action')
+
+        print("[DEBUG] action:", action)
+        print("[DEBUG] raw start:", start)
+        print("[DEBUG] email:", email)
 
         if start == 'custom':
             start = request.form.get('start_custom')
             end = request.form.get('end_custom')
-        else :
+        else:
             now = datetime.now()
             if start == '-1h':
                 start = (now - timedelta(hours=1)).strftime('%Y-%m-%d %H:%M')
@@ -383,10 +385,16 @@ def report():
                 start = (now - timedelta(hours=24)).strftime('%Y-%m-%d %H:%M')
             end = now.strftime('%Y-%m-%d %H:%M')
 
+        print("[DEBUG] formatted start:", start)
+        print("[DEBUG] formatted end:", end)
+
         selected_resources = session.get('selected_resources')
+        print("[DEBUG] selected_resources:", selected_resources)
 
         if action == "preview":
             try:
+                from zabbix_api import get_item_id, get_latest_data, get_user_host
+
                 preview_lines = [f"{username}님의 보고서 (기간: {start} ~ {end})\n"]
 
                 resource_items = {
@@ -428,12 +436,14 @@ def report():
                             preview_lines.append(f"  최대값: {max_val}")
                             preview_lines.append(f"  경고: {warn_cnt}회 / 위험: {crit_cnt}회\n")
                             break
-                        except:
+                        except Exception as sub_e:
+                            print("[DEBUG] 개별 리소스 실패:", sub_e)
                             continue
 
                 preview = "\n".join(preview_lines)
 
             except Exception as e:
+                traceback.print_exc()
                 preview = f"미리보기 중 오류 발생: {str(e)}"
 
             return render_template("report.html", preview=preview, lang=lang)
@@ -446,28 +456,29 @@ def report():
             additional_files = ["static/help_guide.pdf", "static/notice.txt"]
             attachments = [pdf_path] + [f for f in additional_files if os.path.exists(f)]
 
-#             send_email_with_attachment(
-#                 to_email=email,
-#                 file_paths=attachments,
-#                 subject="📊 Zabbix 모니터링 보고서",
-#                 body=f"""{username}님,
+            # send_email_with_attachment(
+            #     to_email=email,
+            #     file_paths=attachments,
+            #     subject="📊 Zabbix 모니터링 보고서",
+            #     body=f"""{username}님,
 
-# 요청하신 리소스 사용률 보고서를 첨부해드립니다.
+            # 요청하신 리소스 사용률 보고서를 첨부해드립니다.
 
-# 📆 기간: {start} ~ {end}
-# 📎 첨부: PDF 보고서 및 안내자료
+            # 📆 기간: {start} ~ {end}
+            # 📎 첨부: PDF 보고서 및 안내자료
 
-# 감사합니다.
-# """
-#             )
+            # 감사합니다.
+            # """
+            # )
+
             flash("PDF 보고서를 이메일로 전송했습니다.", "success")
         except Exception as e:
+            traceback.print_exc()
             flash("오류 발생: " + str(e), "error")
 
         return redirect(url_for('report'))
 
-    return render_template('report.html', lang=lang)
-
+    return render_template("report.html", lang=lang)
 
 
 #회원가입 페이지 + 설치파일 생성
