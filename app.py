@@ -16,6 +16,10 @@ from flask import g
 from datetime import datetime, timedelta
 import traceback
 
+#파이싼 2일때만이라고 하는데 안되니까 넣어봄
+import sys
+sys.setdefaultencoding('utf-8')
+
 app = Flask(__name__)
 
 #session 보안을 위하여 비밀키 설정
