@@ -19,7 +19,7 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             text-align: center;
         }
-        input[type="text"], input[type="submit"] {
+        input, select {
             width: 100%;
             padding: 12px;
             margin-top: 10px;
@@ -41,8 +41,21 @@
     <div class="container">
         <h2>회원가입 요청</h2>
         <form method="POST">
-            <label>에이전트에 등록할 사용자 이름:</label><br>
-            <input type="text" name="username" required><br>
+            <label>사용자 이름:</label>
+            <input type="text" name="username" required>
+
+            <label>비밀번호:</label>
+            <input type="password" name="password" required>
+
+            <label>이메일 주소:</label>
+            <input type="email" name="email" required>
+
+            <label>운영 체제:</label>
+            <select name="os_type" required>
+                <option value="linux">Linux</option>
+                <option value="windows">Windows</option>
+            </select>
+
             <input type="submit" value="설치 스크립트 생성">
         </form>
     </div>
