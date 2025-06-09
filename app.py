@@ -132,14 +132,18 @@ def dashboard():
                            lang=session.get('lang', 'ko'))
     #템플릿에서 사용할 수 있도록 변수로 넘겨주기기
 
-#api가져와서 리소스 데이터 표시
-@app.route('/api/data')
+#api가져와서 실시간 리소스 데이터 시각화. 데이터 수집후 JSON 형태로 반환
+@app.route('/api/data')  #/api/data 경로로 http 요청이 들어왔을때 실행
 def api_data():
-    try:
-        token = session['auth_token']
-        host = request.args.get('host') or session['username']
+    try: #예외 발생 대비
+        token = session['auth_token'] #현재 로그인 된 사용자의 인증 토큰을 세션에서 가져옴
+        host = request.args.get('host') or session['username'] 
+        #요청 파라미터에 host 값이 있으면 그걸 사용하고, 없으면 로그인한 사용자 이름을 호스트 이름으로 사용.
+        
+        #해당 호스트 id를 zabbix api로부터 가져옴
         host_id = get_user_host(token, host, return_id=True)
 
+        #사용자가 /manage 페이지에서 리소스 목록을 세션에서 가져옴. 없으면 빈 리스트
         session_resources = session.get('selected_resources') or []
         print("[선택된 리소스]", session_resources)
 
