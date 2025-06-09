@@ -478,7 +478,7 @@ def report():
             flash("PDF 보고서를 이메일로 전송했습니다.", "success")
         except Exception as e:
             traceback.print_exc()
-            flash("오류 발생: " + str(e), "error")
+            flash("오류 발생: pdf 생성 중 오류가 발생했습니다. 자세한 내용은 관리자에게 문의하세요." "error")
 
         return redirect(url_for('report'))
 
