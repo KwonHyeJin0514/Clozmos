@@ -172,21 +172,26 @@
         <form method="POST" onsubmit="return validateForm()">
             <div class="form-group radio-group">
                 <label>{{ _('select period') }}:</label>
-                <input type="radio" name="start" value="-1h" onclick="toggleCustomInput()"> {{ _('last 1 hour') }}
-                <input type="radio" name="start" value="-24h" onclick="toggleCustomInput()"> {{ _('last 24 hours') }}
-                <input type="radio" name="start" value="custom" onclick="toggleCustomInput()"> {{ _('customization') }}
+                <input type="radio" name="start" value="-1h" 
+                    {% if selected_start == '-1h' %}checked{% endif %}> {{ _('last 1 hour') }}
+                <input type="radio" name="start" value="-24h"
+                    {% if selected_start == '-24h' %}checked{% endif %}> {{ _('last 24 hours') }}
+                <input type="radio" name="start" value="custom"
+                    {% if selected_start == 'custom' %}checked{% endif %}> {{ _('customization') }}
+
             </div>
             {% set selected_resources = session.selected_resources or [] %}
 
             <div id="customInputs" class="form-group" style="display: none;">
-                <input type="text" id="start_custom" name="start_custom" placeholder="시작 시간 (YYYY-MM-DD HH:MM)">
-                <br><br>
-                <input type="text" id="end_custom" name="end_custom" placeholder="종료 시간 (YYYY-MM-DD HH:MM)">
+                <input type="text" id="start_custom" name="start_custom" 
+                    placeholder="시작 시간" value="{{ start_custom or '' }}">
+                <input type="text" id="end_custom" name="end_custom" 
+                    placeholder="종료 시간" value="{{ end_custom or '' }}">
             </div>
 
             <div class="form-group">
                 <label>{{ _('incoming email') }}:</label>
-                <input type="email" name="email" required>
+                <input type="email" name="email" required value="{{ entered_email or '' }}">
             </div>
 
             <div id="errorMsg">{{_('Please enter a valid date/time format, e.g. 2025-05-22 15:00')}}</div>
