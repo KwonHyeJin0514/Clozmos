@@ -19,7 +19,13 @@ def generate_pdf_report(token, username, start, end, selected_resources=None):
     # 사용자 정보
     user = get_user_info(token)
     pdf.cell(200, 10, txt=f"사용자: {username} ({user['name']})", ln=True)
-    pdf.cell(200, 10, txt=f"이메일: {user['email']}", ln=True)
+    email = None
+    medias = user.get('medias') or user.get('user_medias')
+    if medias and isinstance(medias, list) and len(medias) > 0:
+        raw = medias[0].get('sendto')
+        email = raw[0] if isinstance(raw, list) else raw
+
+    pdf.cell(200, 10, txt=f"이메일: {email or '등록되지 않음'}", ln=True)
     pdf.cell(200, 10, txt=f"언어: {user.get('lang', 'ko')}", ln=True)
     pdf.ln(5)
 
