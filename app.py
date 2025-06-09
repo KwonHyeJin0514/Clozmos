@@ -68,7 +68,7 @@ def login():
         user = get_user_info(token)         #사용자 정보 가져오기
         session['lang'] = user.get('lang', 'ko')  #계정에 저장된 언어를 lang에 저장
         host_names = [h['host'] for h in get_all_hosts(token)] #호스트 목록 확인
-        if username not in host_names: #예외처리
+        if not (username.lower()=='admin') and username not in host_names: #예외처리
             raise Exception("입력된 이름에 해당하는 호스트가 존재하지 않습니다.")
 
         session['username'] = username  #로그인 이름
