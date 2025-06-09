@@ -275,10 +275,16 @@ def user_info():
     token = session['auth_token']
     info = get_user_info(token)
     lang = session.get('lang','ko')
+    
+    email = "등록되지 않음"
+    medias = info.get('medias') or info.get('user_medias')
+    if medias and isinstance(medias, list) and len(medias) > 0:
+        email = medias[0].get('sendto', '등록되지 않음')
+    
     return render_template('user_info.html'
-                           , email = info.get('email')
+                           , email = email
                            , username=info.get('name') or info.get('username')
-                           ,lang=lang)
+                           , lang=lang)
 
 #사용자 닉네임 수정
 @app.route('/user_info_name', methods=['GET', 'POST'])

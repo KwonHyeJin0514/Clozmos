@@ -90,9 +90,11 @@ def create_zabbix_user(admin_token, username, password, email):
 def update_user_field(token, field, value):
     user = get_user_info(token)
     userid = user["userid"]
+
     if field == "email" or field == "alert_email":
         payload = {
-            "jsonrpc": "2.0", "method": "user.update",
+            "jsonrpc": "2.0",
+            "method": "user.update",
             "params": {
                 "userid": userid,
                 "user_medias": [{
@@ -103,15 +105,23 @@ def update_user_field(token, field, value):
                     "period": "1-7,00:00-24:00"
                 }]
             },
-            "auth": token, "id": 6
+            "auth": token,
+            "id": 6
         }
     else:
         payload = {
-            "jsonrpc": "2.0", "method": "user.update",
-            "params": { "userid": userid, field: value },
-            "auth": token, "id": 6
+            "jsonrpc": "2.0",
+            "method": "user.update",
+            "params": {
+                "userid": userid,
+                field: value
+            },
+            "auth": token,
+            "id": 6
         }
+
     return _post(payload)
+
 
 def validate_user_password(token, current_password):
     user = get_user_info(token)
