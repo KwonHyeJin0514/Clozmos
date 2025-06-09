@@ -403,7 +403,7 @@ def report():
 
                 host_id = get_user_host(token, username, return_id=True)
 
-                for res_name, key_list in resource_items.items():
+                for res_name, key_list in item_candidates():
                     if selected_resources and res_name not in selected_resources:
                         continue
 
