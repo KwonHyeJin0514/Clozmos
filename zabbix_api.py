@@ -141,22 +141,19 @@ def delete_user_account(token):
     })
 
 def get_alert_logs(token, host_name, max_logs=7):
-    # 1. 호스트 ID를 가져옴
     host_id = get_user_host(token, host_name, return_id=True)
     
-    # 2. 호스트에서 발생한 최근 '이벤트' (알림 로그)를 가져옴
-    #    event.get을 사용하여 실제 알림 기록을 검색해야 합니다.
     events = _post({
         "jsonrpc": "2.0",
         "method": "event.get",
         "params": {
-            "output": ["clock", "value"], # value: 0=OK, 1=Problem
+            "output": ["clock", "value"], 
             "select_triggers": ["description", "priority"],
             "hostids": host_id,
             "sortfield": ["clock", "eventid"],
             "sortorder": "DESC",
-            "time_from": int(time.time()) - (24 * 3600 * 7), # 최근 7일치만 검색
-            "min_severity": 3,  # Warning (3) 이상만 검색
+            "time_from": int(time.time()) - (24 * 3600 * 7), 
+            "min_severity": 3, 
             "limit": 20
         },
         "auth": token, "id": 8
@@ -164,22 +161,23 @@ def get_alert_logs(token, host_name, max_logs=7):
 
     results = []
     
-    # 3. 이벤트를 파싱하여 결과 목록을 만듭니다.
     for event in events:
-        ts = int(event["clock"])
-        level = int(event["triggers"][0]["priority"])
-        
-        # 'value'가 1일 때만 문제 발생 (Problem)으로 간주합니다.
-        # 'value'가 0이면 문제 해제(OK)이므로 알림 로그에서 제외할 수 있습니다.
-        if int(event["value"]) == 0:
-            # 해제된 이벤트는 로그 목록에서 제외하거나 별도로 처리할 수 있습니다.
+        # 이벤트가 Problem (1) 상태가 아니거나, 연결된 트리거가 없다면 건너뜀
+        if int(event.get("value", 0)) == 0 or not event.get("triggers"):
             continue
             
+        # ⚠️ 안전하게 첫 번째 트리거를 가져옵니다.
+        trigger = event["triggers"][0]
+        
+        ts = int(event["clock"])
+        level = int(trigger["priority"])
+        
+        # 심각도에 따른 색상 설정: Critical(4) 이상은 red, Warning(3)은 orange
         color = "red" if level >= 4 else "orange" if level == 3 else "black"
         
         results.append({
             "time": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(ts)),
-            "message": event["triggers"][0]["description"],
+            "message": trigger["description"],
             "color": color
         })
 
