@@ -15,6 +15,7 @@ import os
 from flask import g
 from datetime import datetime, timedelta
 import traceback
+import pytz
 
 
 app = Flask(__name__)
@@ -198,7 +199,12 @@ def api_data():
                         continue
 
                     result[key_name] = {
-                        "timestamps": [time.strftime('%H:%M:%S', time.localtime(int(d['clock']))) for d in data],
+                        "timestamps": [
+                                    datetime.fromtimestamp(int(d['clock']), tz=pytz.utc) # UTC 타임스탬프 로드
+                                    .astimezone(pytz.timezone('Asia/Seoul'))              # KST (한국 시간)로 변환
+                                    .strftime('%H:%M:%S')                                # 원하는 형식으로 포맷
+                                    for d in data
+                                ],                        
                         "values": [float(d['value']) for d in data]
                     }
                     break
