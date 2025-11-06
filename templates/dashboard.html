@@ -159,23 +159,19 @@
                 const labelMap = {
                     "cpu_load": "{{ _('CPU Load') }}",
                     "cpu_util": "{{ _('CPU Usage') }}",
-                    "mem_avail": "{{ _('Available Memory') }}",
                     "mem_util": "{{ _('Memory Utilization') }}",
                     "disk": "{{ _('Disk Usage') }}",
                     "network": "{{ _('Network In/Out') }}",
-                    "loss": "{{ _('Packet Loss') }}",
-                    "uptime": "{{ _('System Uptime') }}"
+                    "loss": "{{ _('Packet Loss') }}"
                 };
 
                 const colorMap = {
                     "cpu_load": "red",
-                    "cpu_util": "orange",
-                    "mem_avail": "blue",
+                    "cpu_util": "orange"
                     "mem_util": "purple",
                     "disk": "brown",
                     "network": "teal",
-                    "loss": "black",
-                    "uptime": "green"
+                    "loss": "black"
                 };
 
                 const chartsDiv = document.getElementById("charts");
