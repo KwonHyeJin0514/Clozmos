@@ -64,9 +64,13 @@ translations = {
         "incoming email" : "수신 이메일",
         "preview" : "미리보기",
         "inquiry" : "조회",
-        "check and delete" : "확인하고 탈퇴"
+        "check and delete" : "확인하고 탈퇴",
+        "Change Email" : "이메일 변경",
+        "New Nickname :" : "새 닉네임 :"
     },
     "en": {
+        "New Nickname :" : "New Nickname :",
+        "Change Email" : "Change Email",
         "Dashboard": "Dashboard",
         "User Info": "User Info",
         "Report": "Report",
