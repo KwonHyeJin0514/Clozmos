@@ -138,7 +138,7 @@
     <form method="POST" action="/manage">
         {% set default_thresholds = {
             "CPU 평균 부하": {"warn": 2.0, "crit": 5.0},
-            "CPU 사용률": {"warn": 80, "crit": 95}
+            "CPU 사용률": {"warn": 60, "crit": 75}
             "전체대비 메모리 사용률": {"warn": 85, "crit": 95},
             "디스크 사용률": {"warn": 80, "crit": 95},
             "네트워크 송수신 바이트수": {"warn": 10000, "crit": 20000},

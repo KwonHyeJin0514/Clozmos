@@ -154,8 +154,7 @@ def api_data():
             "전체대비 메모리 사용률": "mem_util",
             "디스크 사용률": "disk",
             "네트워크 송수신 바이트수": "network",
-            "패킷 손실율": "loss",
-            "부팅 후 경과시간": "uptime"
+            "패킷 손실율": "loss"
         }
 
         # 운영체제별 item key 후보들
@@ -174,10 +173,10 @@ def api_data():
                 'perf_counter_en["\Paging file(_Total)\% Usage"]'        # Windows
             ],
             "네트워크 송수신 바이트수": [
-                "net.if.total[이더넷]"      # Windows
+                'net.if.total["이더넷"]]'      # Windows
             ],
             "패킷 손실율": [
-                "icmppingloss[172.29.109.194]"
+                'icmppingloss["172.29.109.194"]'
             ]
         }
         
@@ -400,9 +399,9 @@ def report():
                     "전체대비 메모리 사용률": ["vm.memory.util"],
                     "디스크 사용률": ['perf_counter_en["\\Paging file(_Total)\\% Usage"]'],
                     "네트워크 송수신 바이트수": [
-                        "net.if.total[이더넷]"
+                        'net.if.total["이더넷"]'
                     ],
-                    "패킷 손실율": ["icmppingloss[172.29.109.194]"]
+                    "패킷 손실율": ['icmppingloss["172.29.109.194"]']
                 }
 
                 host_id = get_user_host(token, username, return_id=True)

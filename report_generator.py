@@ -46,10 +46,10 @@ def generate_pdf_report(token, username, start, end, selected_resources=None):
             'perf_counter_en["\Paging file(_Total)\% Usage"]'        # Windows
         ],
         "네트워크 송수신 바이트수": [            # Linux
-            "net.if.total[이더넷]"
+            'net.if.total["이더넷]'
         ],
         "패킷 손실율": [
-            "icmppingloss[172.29.109.194]"
+            'icmppingloss["172.29.109.194"]'
         ]
     }
 
