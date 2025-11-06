@@ -149,6 +149,7 @@ def get_alert_logs(token, host_name,max_logs=7):
             "output": ["description", "priority", "lastchange"],
             "hostids": host_id,
             "expandDescription": True,
+            "min_severity": 3,  # <<< 이 줄을 추가: 우선순위 3 (경고) 이상만 가져옴
             "sortfield": "lastchange",
             "sortorder": "DESC",
             "limit": 20
