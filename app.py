@@ -173,7 +173,7 @@ def api_data():
                 'perf_counter_en["\Paging file(_Total)\% Usage"]'        # Windows
             ],
             "네트워크 송수신 바이트수": [
-                'net.if.total["이더넷"]]'      # Windows
+                'net.if.total["이더넷"]'      # Windows
             ],
             "패킷 손실율": [
                 'icmppingloss["172.29.109.194"]'
@@ -305,12 +305,6 @@ def user_info_language():
         session['lang'] = new_lang  # 세션에 반영
         return redirect(url_for('user_info'))
     return render_template('user_info_language.html',lang=lang)
-
-#tranlations를 전역으로
-@app.context_processor
-def inject_translations():
-    from translations import translations
-    return dict(translations=translations)
 
 #알림 수신 이메일 변경
 @app.route('/user_info_alert', methods=['GET', 'POST'])
