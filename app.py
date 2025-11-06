@@ -156,8 +156,7 @@ def api_data():
             "디스크 사용률": "disk",
             "네트워크 송수신 바이트수": "network",
             "패킷 손실율": "loss",
-            "부팅 후 경과시간": "uptime",
-            "중요 포트 오픈 여부": "port"
+            "부팅 후 경과시간": "uptime"
         }
 
         # 운영체제별 item key 후보들
@@ -188,10 +187,6 @@ def api_data():
             ],
             "부팅 후 경과시간": [
                 "system.uptime"
-            ],
-            "중요 포트 오픈 여부": [
-                "net.tcp.listen[22]",          # Linux (SSH)
-                "net.tcp.listen[3389]"         # Windows (RDP)
             ]
         }
         
@@ -244,8 +239,7 @@ def manage():
             "디스크 사용률": {"warn": 80, "crit": 95},
             "네트워크 송수신 바이트수": {"warn": 10000, "crit": 20000},
             "패킷 손실율": {"warn": 10, "crit": 30},
-            "부팅 후 경과시간": {"warn": 86400, "crit": 172800},
-            "중요 포트 오픈 여부": {"warn": 0, "crit": 0}
+            "부팅 후 경과시간": {"warn": 86400, "crit": 172800}
         }
 
         thresholds = {}
@@ -424,8 +418,7 @@ def report():
                         "net.if.out[Ethernet]"
                     ],
                     "패킷 손실율": ["net.if.loss[eth0]", "net.if.loss[Ethernet]"],
-                    "부팅 후 경과시간": ["system.uptime"],
-                    "중요 포트 오픈 여부": ["net.tcp.listen[22]", "net.tcp.listen[3389]"]
+                    "부팅 후 경과시간": ["system.uptime"]
                 }
 
                 host_id = get_user_host(token, username, return_id=True)
@@ -511,26 +504,26 @@ def register():
             path = f"/tmp/install_{username}_{timestamp}.sh"
             with open(path, 'w') as f:
                 f.write(f"""#!/bin/bash
-sudo apt update
-sudo apt install zabbix-agent -y
-sudo sed -i 's/^Server=.*/Server={ZABBIX_SERVER_IP}/' /etc/zabbix/zabbix_agentd.conf
-sudo sed -i 's/^Hostname=.*/Hostname={username}/' /etc/zabbix/zabbix_agentd.conf
-sudo sed -i 's/^# HostMetadata=.*/HostMetadata=zabbix_agent/' /etc/zabbix/zabbix_agentd.conf
-sudo systemctl enable zabbix-agent
-sudo systemctl restart zabbix-agent
-""")
+                    sudo apt update
+                    sudo apt install zabbix-agent -y
+                    sudo sed -i 's/^Server=.*/Server={ZABBIX_SERVER_IP}/' /etc/zabbix/zabbix_agentd.conf
+                    sudo sed -i 's/^Hostname=.*/Hostname={username}/' /etc/zabbix/zabbix_agentd.conf
+                    sudo sed -i 's/^# HostMetadata=.*/HostMetadata=zabbix_agent/' /etc/zabbix/zabbix_agentd.conf
+                    sudo systemctl enable zabbix-agent
+                    sudo systemctl restart zabbix-agent
+                    """)
             os.chmod(path, 0o755)
         else:
             path = f"/tmp/install_{username}_{timestamp}.bat"
             with open(path, 'w') as f:
                 f.write(f"""@echo off
-msiexec /i https://cdn.zabbix.com/zabbix/binaries/stable/6.0/6.0.20/zabbix_agent-6.0.20-windows-amd64-openssl.msi /quiet
-timeout 10
-powershell -Command "(Get-Content 'C:\\Program Files\\Zabbix Agent\\zabbix_agentd.conf') -replace '^Server=.*', 'Server={ZABBIX_SERVER_IP}' | Set-Content 'C:\\Program Files\\Zabbix Agent\\zabbix_agentd.conf'"
-powershell -Command "(Add-Content 'C:\\Program Files\\Zabbix Agent\\zabbix_agentd.conf' 'Hostname={username}')"
-powershell -Command "(Add-Content 'C:\\Program Files\\Zabbix Agent\\zabbix_agentd.conf' 'HostMetadata=zabbix_agent')"
-net start "Zabbix Agent"
-""")
+                    msiexec /i https://cdn.zabbix.com/zabbix/binaries/stable/6.0/6.0.20/zabbix_agent-6.0.20-windows-amd64-openssl.msi /quiet
+                    timeout 10
+                    powershell -Command "(Get-Content 'C:\\Program Files\\Zabbix Agent\\zabbix_agentd.conf') -replace '^Server=.*', 'Server={ZABBIX_SERVER_IP}' | Set-Content 'C:\\Program Files\\Zabbix Agent\\zabbix_agentd.conf'"
+                    powershell -Command "(Add-Content 'C:\\Program Files\\Zabbix Agent\\zabbix_agentd.conf' 'Hostname={username}')"
+                    powershell -Command "(Add-Content 'C:\\Program Files\\Zabbix Agent\\zabbix_agentd.conf' 'HostMetadata=zabbix_agent')"
+                    net start "Zabbix Agent"
+                    """)
 
         flash("계정이 생성되었습니다. 설치 파일을 다운로드하세요.")
         return render_template('register_done.html', username=username, os_type=os_type, timestamp=timestamp)
