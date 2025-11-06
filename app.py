@@ -174,14 +174,10 @@ def api_data():
                 'perf_counter_en["\Paging file(_Total)\% Usage"]'        # Windows
             ],
             "네트워크 송수신 바이트수": [
-                "net.if.total[eth0]"      # Windows
+                "net.if.total[이더넷]"      # Windows
             ],
             "패킷 손실율": [
-                "net.if.loss[eth0]",
-                "net.if.loss[Ethernet]"
-            ],
-            "부팅 후 경과시간": [
-                "system.uptime"
+                "icmppingloss[172.29.109.194]"
             ]
         }
         
@@ -228,7 +224,7 @@ def manage():
         # threshold 값 저장 (입력 없으면 기본값 적용)
         default_thresholds = {
             "CPU 평균 부하": {"warn": 2.0, "crit": 5.0},
-            "CPU 사용률": {"warn": 80, "crit": 95},
+            "CPU 사용률": {"warn": 60, "crit": 75},
             "전체대비 메모리 사용률": {"warn": 85, "crit": 95},
             "디스크 사용률": {"warn": 80, "crit": 95},
             "네트워크 송수신 바이트수": {"warn": 10000, "crit": 20000},
@@ -405,13 +401,9 @@ def report():
                     "전체대비 메모리 사용률": ["vm.memory.util"],
                     "디스크 사용률": ['perf_counter_en["\\Paging file(_Total)\\% Usage"]'],
                     "네트워크 송수신 바이트수": [
-                        "net.if.in[3B5E5271-E35B-4D78-98CC-AE486558DAD1]",
-                        "net.if.out[eth0]",
-                        "net.if.in[Ethernet]",
-                        "net.if.out[Ethernet]"
+                        "net.if.total[이더넷]"
                     ],
-                    "패킷 손실율": ["net.if.loss[eth0]", "net.if.loss[Ethernet]"],
-                    "부팅 후 경과시간": ["system.uptime"]
+                    "패킷 손실율": ["icmppingloss[172.29.109.194]"]
                 }
 
                 host_id = get_user_host(token, username, return_id=True)
