@@ -1,11 +1,24 @@
-import threading
+import multiprocessing
+import time
+import sys
+import os
 
 def burn_cpu():
-    while True:
-        pass  # 무한 루프
+    start = time.time()
+    while time.time() - start < 8:
+        pass
 
-threads = []
-for _ in range(20):  # CPU 코어 수에 맞게 조절
-    t = threading.Thread(target=burn_cpu)
-    t.start()
-    threads.append(t)
+def main():
+    processes = []
+    for _ in range(10):
+        p = multiprocessing.Process(target=burn_cpu)
+        p.start()
+        processes.append(p)
+
+    for p in processes:
+        p.join()
+
+
+if __name__ == "__main__":
+    multiprocessing.freeze_support() 
+    main()
