@@ -33,7 +33,7 @@ ZABBIX_ADMIN_PW = "zabbix"
 def inject_translations():
     #현재 언어를 가져오기 (없으면 한국어 기본)
     lang = getattr(g, 'lang', 'ko')
-    def _(key):         #번역 함수 정의의
+    def _(key):         #번역 함수 정의
         return translations.get(lang, {}).get(key, key)
     return dict(_=_)        #_이라는 함수를 등록 => {'_': _}
 
@@ -151,7 +151,6 @@ def api_data():
         metric_key_map = {
             "CPU 평균 부하": "cpu_load",
             "CPU 사용률": "cpu_util",
-            "사용 가능한 메모리": "mem_avail",
             "전체대비 메모리 사용률": "mem_util",
             "디스크 사용률": "disk",
             "네트워크 송수신 바이트수": "network",
@@ -168,9 +167,6 @@ def api_data():
             "CPU 사용률": [
                 "system.cpu.util"
             ],
-            "사용 가능한 메모리": [
-                "vm.memory.size[available]"
-            ],
             "전체대비 메모리 사용률": [
                 "vm.memory.util"
             ],
@@ -178,8 +174,7 @@ def api_data():
                 'perf_counter_en["\Paging file(_Total)\% Usage"]'        # Windows
             ],
             "네트워크 송수신 바이트수": [
-                "net.if.in[3B5E5271-E35B-4D78-98CC-AE486558DAD1]", "net.if.out[eth0]",              # Linux
-                "net.if.in[Ethernet]", "net.if.out[Ethernet]"       # Windows
+                "net.if.total[eth0]"      # Windows
             ],
             "패킷 손실율": [
                 "net.if.loss[eth0]",
@@ -234,7 +229,6 @@ def manage():
         default_thresholds = {
             "CPU 평균 부하": {"warn": 2.0, "crit": 5.0},
             "CPU 사용률": {"warn": 80, "crit": 95},
-            "사용 가능한 메모리": {"warn": 500, "crit": 100},
             "전체대비 메모리 사용률": {"warn": 85, "crit": 95},
             "디스크 사용률": {"warn": 80, "crit": 95},
             "네트워크 송수신 바이트수": {"warn": 10000, "crit": 20000},
@@ -408,7 +402,6 @@ def report():
                         'perf_counter_en["\\Processor Information(_total)\\% Privileged Time"]'
                     ],
                     "CPU 사용률": ["system.cpu.util"],
-                    "사용 가능한 메모리": ["vm.memory.size[available]"],
                     "전체대비 메모리 사용률": ["vm.memory.util"],
                     "디스크 사용률": ['perf_counter_en["\\Paging file(_Total)\\% Usage"]'],
                     "네트워크 송수신 바이트수": [
@@ -466,13 +459,13 @@ def report():
                 subject=" Zabbix 모니터링 보고서",
                 body=f"""{username}님,
 
-                요청하신 리소스 사용률 보고서를 첨부해드립니다.
+요청하신 리소스 사용률 보고서를 첨부해드립니다.
 
-                기간: {start} ~ {end}
-                첨부: PDF 보고서 및 안내자료
+기간: {start} ~ {end}
+첨부: PDF 보고서 및 안내자료
 
-                감사합니다.
-                """)
+감사합니다.
+""")
             flash("PDF 보고서를 이메일로 전송했습니다.", "success")
         except Exception as e:
             traceback.print_exc()

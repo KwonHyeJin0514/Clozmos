@@ -41,22 +41,17 @@ def generate_pdf_report(token, username, start, end, selected_resources=None):
             ['perf_counter_en["\\Processor Information(_total)\\% User Time"]',
             'perf_counter_en["\\Processor Information(_total)\\% Privileged Time"]'],  # Linux only
         "CPU 사용률": ["system.cpu.util"],
-        "사용 가능한 메모리": ["vm.memory.size[available]"],
         "전체대비 메모리 사용률": ["vm.memory.util"],
         "디스크 사용률": [
             'perf_counter_en["\Paging file(_Total)\% Usage"]'        # Windows
         ],
         "네트워크 송수신 바이트수": [            # Linux
-            'net.if.in[3B5E5271-E35B-4D78-98CC-AE486558DAD1]', 'net.if.out[eth0]',"net.if.in[Ethernet]", "net.if.out[Ethernet]"      # Windows
+            "net.if.total[eth0]"
         ],
         "패킷 손실율": [
-            "net.if.loss[eth0]", "net.if.loss[Ethernet]"
+            "net.if.loss[eth0]", "net.if.loss[Ethernet]", icmppingloss[]
         ],
-        "부팅 후 경과시간": ["system.uptime"],
-        "중요 포트 오픈 여부": [
-            "net.tcp.listen[22]",       # Linux (SSH)
-            "net.tcp.listen[3389]"      # Windows (RDP)
-        ]
+        "부팅 후 경과시간": ["system.uptime"]
     }
 
     host_id = get_user_host(token, username, return_id=True)
