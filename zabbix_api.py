@@ -8,6 +8,70 @@ def _post(payload):
     res = requests.post(ZABBIX_API_URL, json=payload, headers=headers)
     return res.json()
 
+def get_item_info(token, host_id, item_key):
+    """
+    Zabbix 아이템 키를 사용하여 아이템 ID와 데이터 타입(history type)을 조회합니다.
+    """
+    res = _post({
+        "jsonrpc": "2.0",
+        "method": "item.get",
+        "params": {
+            "output": ["itemid", "value_type"],
+            "hostids": host_id,
+            "search": {"key_": item_key},
+            # 정확한 키 매칭을 위해 filter를 사용할 수도 있지만 search를 사용합니다.
+            "sortfield": "itemid",
+            "limit": 1
+        },
+        "auth": token, "id": 10
+    })["result"]
+
+    if res:
+        # itemid와 value_type(history type)을 반환
+        return res[0]["itemid"], int(res[0]["value_type"])
+    return None, None
+
+
+# 2. 특정 기간의 이력 데이터를 조회하는 함수
+def get_historical_data(token, host_name, item_key, time_from, time_till):
+    """
+    특정 기간 (Unix Timestamp) 동안의 메트릭 이력 데이터를 조회합니다.
+    """
+    host_id = get_user_host(token, host_name, return_id=True)
+    if not host_id:
+        return []
+
+    # ⚠️ 먼저 아이템의 ID와 데이터 타입을 조회합니다.
+    item_id, history_type = get_item_info(token, host_id, item_key)
+    
+    if item_id is None:
+        return []
+
+    params = {
+        "output": "extend",
+        # ⚠️ 아이템의 실제 데이터 타입(history_type: 0=float, 3=int 등)을 사용
+        "history": history_type, 
+        "itemids": item_id,
+        "time_from": time_from, # Unix Timestamp
+        "time_till": time_till, # Unix Timestamp
+        "sortfield": "clock",
+        "sortorder": "ASC"
+    }
+
+    try:
+        result = _post({
+            "jsonrpc": "2.0",
+            "method": "history.get",
+            "params": params,
+            "auth": token, "id": 9
+        })
+        
+        return result["result"]
+    except Exception:
+        # 해당 history type으로 데이터가 없을 경우 (예: 실수형 데이터가 정수형 history에 없음)
+        # API 오류가 발생할 수 있으므로 빈 리스트 반환
+        return []
+
 def get_auth_token(user, password):
     return _post({
         "jsonrpc": "2.0", "method": "user.login",

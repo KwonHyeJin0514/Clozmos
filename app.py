@@ -2,7 +2,7 @@ from flask import jsonify, Flask, render_template, request, redirect, url_for, s
 from zabbix_api import (
     get_auth_token, get_all_hosts, get_user_host, get_item_id, get_latest_data,
     get_user_info, update_user_field, validate_user_password, delete_user_account,
-    get_alert_logs, create_zabbix_user
+    get_alert_logs, create_zabbix_user, get_historical_data, get_item_info
 )
 #자빅스와 연동하기 위해 만든 api 함수들
 from report_generator import generate_pdf_report
@@ -218,6 +218,71 @@ def api_data():
         print("[API ERROR]", str(e))
         return jsonify({"error": str(e)}), 500
 
+# app.py (기존 /api/data 라우트 이후에 추가)
+
+@app.route('/api/report_data', methods=['GET'])
+def api_report_data():
+    try:
+        token = session['auth_token']
+        username = session['username']
+        
+        # ⚠️ report.html에서 GET 파라미터로 받은 YYYY-MM-DDTHH:MM 형식의 시간
+        start_date_raw = request.args.get('start_date') 
+        end_date_raw = request.args.get('end_date')
+
+        # KST 시간대 정의
+        kst = pytz.timezone('Asia/Seoul')
+        DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+        
+        # 날짜 문자열을 KST 기반 Unix Timestamp로 변환
+        start_dt_kst = kst.localize(datetime.strptime(start_date_raw, DATE_FORMAT))
+        end_dt_kst = kst.localize(datetime.strptime(end_date_raw, DATE_FORMAT))
+        time_from = int(start_dt_kst.timestamp())
+        time_till = int(end_dt_kst.timestamp())
+        
+        # report_generator.py와 동일한 Item Key 맵 사용 (멀티 플랫폼 호환성 확보)
+        resource_items = {
+            "CPU 평균 부하": [ 'system.cpu.load[all,avg1]', 'perf_counter_en["\\Processor Information(_total)\\% User Time"]' ],
+            "CPU 사용률": ["system.cpu.util"],
+            "전체대비 메모리 사용률": ["vm.memory.util"],
+            "디스크 사용률": [ 'vfs.fs.size[/,pused]', 'perf_counter_en["\Paging file(_Total)\\% Usage"]' ],
+            "네트워크 송수신 바이트수": [ 'net.if.in[eth0]', 'net.if.out[eth0]' ],
+            "패킷 손실율": ['icmppingloss["172.29.109.194"]']
+        }
+
+        result_data = {}
+
+        # ⚠️ 세션에 저장된 선택 리소스 사용
+        selected_resources = session.get('selected_resources') or resource_items.keys() 
+        
+        for res_name, key_list in resource_items.items():
+            if res_name not in selected_resources:
+                continue
+
+            for key in key_list:
+                data = get_historical_data(token, username, key, time_from, time_till)
+                
+                if data:
+                    # 데이터 포인트가 많을 경우, JSON 직렬화에 시간이 오래 걸리거나 너무 커질 수 있음
+                    # 여기서는 모든 데이터를 반환하는 것으로 가정합니다.
+                    timestamps = [
+                        datetime.fromtimestamp(int(d['clock'])).astimezone(kst).strftime('%Y-%m-%d %H:%M:%S') 
+                        for d in data
+                    ]
+                    values = [float(d['value']) for d in data]
+
+                    result_data[res_name] = {
+                        "timestamps": timestamps,
+                        "values": values
+                    }
+                    break # 유효한 데이터를 찾으면 다음 리소스로 이동
+
+        return jsonify(result_data)
+
+    except Exception as e:
+        print("[API REPORT DATA ERROR]", str(e))
+        traceback.print_exc()
+        return jsonify({"error": f"데이터 로드 실패: {str(e)}", "detail": traceback.format_exc()}), 500
 
 #리소스 선택 저장
 @app.route('/manage', methods=['GET', 'POST'])
@@ -352,119 +417,130 @@ def user_info_delete():
         return redirect(url_for('logout'))
     return render_template('user_info_delete.html',lang=lang)
 
+# app.py의 기존 @app.route('/report', methods=['GET', 'POST']) 함수를 대체
+
 @app.route('/report', methods=['GET', 'POST'])
 def report():
-    lang = session.get('lang', 'ko')
-
+    if 'auth_token' not in session:
+        return redirect(url_for('index'))
+    
+    token = session['auth_token']
+    username = session['username']
+    kst = pytz.timezone('Asia/Seoul')
+    DATE_FORMAT_API = '%Y-%m-%d %H:%M:%S'
+    DATE_FORMAT_HTML = '%Y-%m-%dT%H:%M'
+    
+    context = {
+        'lang': session.get('lang', 'ko'),
+        'entered_email': '',
+        'selected_start': '-24h',
+        'start_custom': '',
+        'end_custom': ''
+    }
+    
+    # ----------------------------------------------------
+    # POST 요청 처리 (보고서 전송)
+    # ----------------------------------------------------
     if request.method == 'POST':
-        token = session.get('auth_token')
-        username = session.get('username')
-        start = request.form.get('start')
-        email = request.form.get('email')
-        action = request.form.get('action')
+        action = request.form.get('action') # 'send'만 처리
+        selected_period = request.form.get('start', '-24h')
+        entered_email = request.form.get('email')
+        
+        # report.html에서 체크박스를 통해 선택된 리소스 목록
+        selected_resources = request.form.getlist('resources')
+        # 세션에 선택된 리소스 저장 (GET API에서 사용)
+        session['selected_resources'] = selected_resources 
 
-        print("[DEBUG] action:", action)
-        print("[DEBUG] raw start:", start)
-        print("[DEBUG] email:", email)
+        context.update({'entered_email': entered_email, 'selected_start': selected_period})
+        
+        start_time_str = None
+        end_time_str = None
 
-        if start == 'custom':
-            start = request.form.get('start_custom')
-            end = request.form.get('end_custom')
-        else:
-            now = datetime.now()
-            if start == '-1h':
-                start = (now - timedelta(hours=1)).strftime('%Y-%m-%d %H:%M')
-            elif start == '-24h':
-                start = (now - timedelta(hours=24)).strftime('%Y-%m-%d %H:%M')
-            end = now.strftime('%Y-%m-%d %H:%M')
+        # 1. 기간 설정 및 시간 문자열 변환 (PDF 생성 함수에 전달할 형식)
+        if selected_period == 'custom':
+            # report.html에서 datetime-local 포맷 (YYYY-MM-DDTHH:MM)으로 넘어옴
+            start_time_raw = request.form.get('start_custom')
+            end_time_raw = request.form.get('end_custom')
+            
+            # API 호출 형식 (YYYY-MM-DD HH:MM:SS)으로 변환
+            if start_time_raw and end_time_raw:
+                start_time_str = start_time_raw.replace('T', ' ') + ':00'
+                end_time_str = end_time_raw.replace('T', ' ') + ':00'
+                context.update({'start_custom': start_time_raw, 'end_custom': end_time_raw})
+            else:
+                flash("커스텀 기간을 모두 입력해야 합니다.", 'error')
+                return render_template('report.html', **context)
+                
+        else: # -1h 또는 -24h
+            now_kst = datetime.now(kst)
+            end_dt = now_kst
+            
+            if selected_period == '-1h':
+                start_dt = now_kst - timedelta(hours=1)
+            else: # -24h
+                start_dt = now_kst - timedelta(hours=24)
+            
+            # PDF 함수에 전달할 형식 (KST 기준)
+            start_time_str = start_dt.strftime(DATE_FORMAT_API)
+            end_time_str = end_dt.strftime(DATE_FORMAT_API)
 
-        print("[DEBUG] formatted start:", start)
-        print("[DEBUG] formatted end:", end)
-
-        selected_resources = session.get('selected_resources')
-        print("[DEBUG] selected_resources:", selected_resources)
-
-        if action == "preview":
+        # 2. 전송 (Send) 액션 처리
+        if action == 'send':
+            pdf_path = None
             try:
-                from zabbix_api import get_item_id, get_latest_data, get_user_host
+                # PDF 생성 및 그래프 포함 (report_generator.py에서 처리)
+                pdf_path = generate_pdf_report(token, username, start_time_str, end_time_str, selected_resources)
+                
+                additional_files = ["static/help_guide.pdf", "static/notice.txt"]
+                attachments = [pdf_path] + [f for f in additional_files if os.path.exists(f)]
 
-                preview_lines = [f"{username}님의 보고서 (기간: {start} ~ {end})\n"]
-
-                resource_items = {
-                    "CPU 평균 부하": [
-                        'perf_counter_en["\\Processor Information(_total)\\% User Time"]',
-                        'perf_counter_en["\\Processor Information(_total)\\% Privileged Time"]'
-                    ],
-                    "CPU 사용률": ["system.cpu.util"],
-                    "전체대비 메모리 사용률": ["vm.memory.util"],
-                    "디스크 사용률": ['perf_counter_en["\\Paging file(_Total)\\% Usage"]'],
-                    "네트워크 송수신 바이트수": [
-                        'net.if.total["이더넷"]'
-                    ],
-                    "패킷 손실율": ['icmppingloss["172.29.109.194"]']
-                }
-
-                host_id = get_user_host(token, username, return_id=True)
-
-                for res_name, key_list in resource_items.items():
-                    if selected_resources and res_name not in selected_resources:
-                        continue
-                    for key in key_list:
-                        try:
-                            item_id = get_item_id(token, host_id, key)
-                            data = get_latest_data(token, item_id, limit=20)
-                            values = [float(d['value']) for d in data]
-                            if not values:
-                                continue
-                            max_val = max(values)
-                            warn_cnt = len([v for v in values if v > 80])
-                            crit_cnt = len([v for v in values if v > 95])
-                            preview_lines.append(f"> {res_name}")
-                            preview_lines.append(f"  최대값: {max_val}")
-                            preview_lines.append(f"  경고: {warn_cnt}회 / 위험: {crit_cnt}회\n")
-                            break
-                        except Exception as sub_e:
-                            print("[DEBUG] 개별 리소스 실패:", sub_e)
-                            continue
-
-                preview = "\n".join(preview_lines)
-
-            except Exception as e:
-                traceback.print_exc()
-                preview = f"미리보기 중 오류 발생: {str(e)}"
-
-            return render_template("report.html", preview=preview, lang=lang)
-
-        try:
-            from report_generator import generate_pdf_report
-            from email_sender import send_email_with_attachment
-
-            pdf_path = generate_pdf_report(token, username, start, end, selected_resources)
-            additional_files = ["static/help_guide.pdf", "static/notice.txt"]
-            attachments = [pdf_path] + [f for f in additional_files if os.path.exists(f)]
-
-            send_email_with_attachment(
-                to_email=email,
-                file_paths=attachments,
-                subject=" Zabbix 모니터링 보고서",
-                body=f"""{username}님,
-
+                send_email_with_attachment(
+                    to_email=entered_email,
+                    file_paths=attachments,
+                    subject=" Zabbix 모니터링 보고서",
+                    body=f"""{username}님,
 요청하신 리소스 사용률 보고서를 첨부해드립니다.
-
-기간: {start} ~ {end}
+기간: {start_time_str} ~ {end_time_str}
 첨부: PDF 보고서 및 안내자료
 
 감사합니다.
 """)
-            flash("PDF 보고서를 이메일로 전송했습니다.", "success")
-        except Exception as e:
-            traceback.print_exc()
-            flash("오류 발생: pdf 생성 중 오류가 발생했습니다. 자세한 내용은 관리자에게 문의하세요.", "error")
+                flash(f"PDF 보고서를 {entered_email}로 성공적으로 전송했습니다.", 'success')
+                
+            except Exception as e:
+                traceback.print_exc()
+                flash(f"보고서 생성/전송 중 오류 발생: {e}", 'error')
+            finally:
+                # 서버에 생성된 임시 PDF 파일 삭제
+                if pdf_path and os.path.exists(pdf_path):
+                    os.remove(pdf_path)
+            
+            return redirect(url_for('report'))
+    
+    # ----------------------------------------------------
+    # GET 요청 처리 (페이지 로드)
+    # ----------------------------------------------------
+    
+    # 기본값으로 24시간 전 시간을 datetime-local 형식으로 context에 넣어줍니다.
+    now_kst = datetime.now(kst)
+    start_dt_default = now_kst - timedelta(hours=24)
+    context.update({
+        'start_custom': start_dt_default.strftime(DATE_FORMAT_HTML),
+        'end_custom': now_kst.strftime(DATE_FORMAT_HTML)
+    })
 
-        return redirect(url_for('report'))
-
-    return render_template("report.html", lang=lang)
-
+    # 사용자 등록 이메일 기본값으로 설정
+    user_info = get_user_info(token)
+    email = None
+    medias = user_info.get('medias') or user_info.get('user_medias')
+    if medias and isinstance(medias, list) and len(medias) > 0:
+        raw = medias[0].get('sendto')
+        # Zabbix 미디어 정보에서 이메일 추출
+        email = raw[0] if isinstance(raw, list) and raw else raw 
+    
+    context['entered_email'] = context['entered_email'] or email or ''
+    
+    return render_template('report.html', **context)
 
 #회원가입 페이지 + 설치파일 생성
 @app.route('/register', methods=['GET', 'POST'])
